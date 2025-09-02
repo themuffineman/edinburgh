@@ -10,15 +10,16 @@ load_dotenv()
 
 # --- CONFIG ---
 SMTP_SERVER = "smtp.hostinger.com"
-SMTP_PORT = 465 
-EMAIL_ADDRESS = os.getenv("SENDER_EMAIL")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+SMTP_PORT = 587 
+EMAIL_ADDRESS = str(os.getenv("SENDER_EMAIL"))
+EMAIL_PASSWORD = str(os.getenv("SENDER_PASSWORD"))
+print(EMAIL_ADDRESS,EMAIL_PASSWORD)
 
 recipients = [
     "petrusheya@gmail.com",
 ]
 
-SUBJECT = "Hello Old Friend. Ready for the tech-con?"
+SUBJECT = "Bring along a warm jersey?"
 
 
 def send_email(to_address):
@@ -47,7 +48,6 @@ def send_email(to_address):
     except Exception as e:
         print(f"[!] Failed to send to {to_address}: {e}")
 
-# --- MAIN LOOP WITH RANDOM DELAYS ---
 for recipient in recipients:
     send_email(recipient)
     delay = random.randint(30, 40)
