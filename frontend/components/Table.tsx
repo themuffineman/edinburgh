@@ -195,7 +195,9 @@ export const columns: ColumnDef<Lead>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("name")}</div>,
+    cell: ({ row }) => (
+      <div className="capitalize trancate max-w-28">{row.getValue("name")}</div>
+    ),
   },
   {
     accessorKey: "website",

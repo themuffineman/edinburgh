@@ -42,9 +42,14 @@ const sampleLeads = [
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 w-full">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full max-w-full">
-        <h1>Edinburgh</h1>
+    <div className="font-sans items-center justify-items-center min-h-screen p-8 gap-16 sm:p-10 w-full">
+      <main className="flex flex-col h-max gap-[32px] justify-center items-center w-full max-w-full">
+        <h1 className="relative z-20 sm:text-5xl text-4xl ">
+          <span className="bg-gradient-to-b from-neutral-200 to-neutral-500 bg-clip-text py-8 font-bold text-transparent ">
+            Edinburgh
+          </span>{" "}
+          🕰️
+        </h1>
         <div className="w-full max-w-full overflow-x-auto">
           <LeadsTable leads={sampleLeads} />
         </div>
