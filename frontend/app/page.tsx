@@ -8,8 +8,10 @@ const sampleLeads = [
     website: "https://johndoe.com",
     linkedin: "https://linkedin.com/in/johndoe",
     emailAddress: "https://facebook.com/johndoe",
-    email:
-      "Hi John,\n\nI wanted to reach out and tell you about our services...\n\nBest,\nYour Name",
+    email: {
+      subject: "Hello John",
+      body: "Hi John,\n\nI wanted to reach out and tell you about our services...\n\nBest,\nYour Name",
+    },
   },
   {
     id: 2,
@@ -17,8 +19,10 @@ const sampleLeads = [
     website: "https://janesmith.io",
     linkedin: "https://linkedin.com/in/janesmith",
     emailAddress: "https://facebook.com/janesmith",
-    email:
-      "Hello Jane,\n\nWe think our solution could help you achieve...\n\nCheers,\nYour Name",
+    email: {
+      subject: "Hello Jane",
+      body: "Hello Jane,\n\nWe think our solution could help you achieve...\n\nCheers,\nYour Name",
+    },
   },
   {
     id: 3,
@@ -26,8 +30,10 @@ const sampleLeads = [
     website: "https://mikejohnson.co",
     linkedin: "https://linkedin.com/in/mikejohnson",
     emailAddress: "https://facebook.com/mikejohnson",
-    email:
-      "Dear Mike,\n\nI wanted to share something that could be valuable to you...\n\nRegards,\nYour Name",
+    email: {
+      subject: "Hello Mike",
+      body: "Dear Mike,\n\nI wanted to share something that could be valuable to you...\n\nRegards,\nYour Name",
+    },
   },
   {
     id: 4,
@@ -35,8 +41,10 @@ const sampleLeads = [
     website: "https://emilydavis.net",
     linkedin: "https://linkedin.com/in/emilydavis",
     emailAddress: "https://facebook.com/emilydavis",
-    email:
-      "Hi Emily,\n\nI hope you're doing well! I wanted to reach out regarding...\n\nThanks,\nYour Name",
+    email: {
+      subject: "Hello Emily",
+      body: "Hi Emily,\n\nI hope you're doing well! I wanted to reach out regarding...\n\nThanks,\nYour Name",
+    },
   },
 ];
 

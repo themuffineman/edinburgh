@@ -4,7 +4,10 @@ export type Lead = {
   website: string;
   linkedin: string;
   emailAddress: string;
-  email: string;
+  email: {
+    subject: string;
+    body: string;
+  };
 };
 
 export type LeadsTableProps = {

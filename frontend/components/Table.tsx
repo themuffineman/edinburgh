@@ -34,6 +34,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -44,118 +52,25 @@ import {
 } from "@/components/ui/table";
 import { Lead, LeadsTableProps } from "./types";
 import Link from "next/link";
+import { Switch } from "./ui/switch";
 
-// Simple dialog component since we don't have the UI dialog component
-const SimpleDialog = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50"
-        onClick={onClose}
-      ></div>
-      <div className="relative bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto z-50">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">{title}</h3>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
-            >
-              &times;
-            </button>
-          </div>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
+// Simple onclick functions that take row data as parameters
+const handleSendEmailClick = (leadData: Lead) => {
+  alert("Send Email btn clicked");
+  // Implement email sending logic here later
+  console.log("Send Email clicked for lead:", leadData);
 };
 
-const SimpleTextarea = ({
-  value,
-  onChange,
-  className,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  className?: string;
-}) => {
-  return (
-    <textarea
-      value={value}
-      onChange={onChange}
-      className={`border rounded-md p-2 w-full ${className || ""}`}
-    />
-  );
+const handleDeleteClick = (leadData: Lead) => {
+  alert("Delete btn clicked");
+  // Implement delete logic here later
+  console.log("Delete clicked for lead:", leadData);
 };
 
-// Confirmation dialog component
-const ConfirmDialog = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  title,
-  message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50"
-        onClick={onClose}
-      ></div>
-      <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full z-50">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">{title}</h3>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
-            >
-              &times;
-            </button>
-          </div>
-          <p className="mb-6">{message}</p>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose}>
-              {cancelText}
-            </Button>
-            <Button
-              onClick={() => {
-                onConfirm();
-                onClose();
-              }}
-            >
-              {confirmText}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+const handlePersonalizeClick = (leadData: Lead) => {
+  alert("Personalize btn clicked");
+  // Implement personalize logic here later
+  console.log("Personalize clicked for lead:", leadData);
 };
 
 export const columns: ColumnDef<Lead>[] = [
@@ -250,39 +165,61 @@ export const columns: ColumnDef<Lead>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <div className="lowercase max-w-28 truncate">{row.getValue("email")}</div>
-    ),
+    cell: ({ row }) => {
+      const lead = row.original;
+      const [isEmailDialogOpen, setIsEmailDialogOpen] = React.useState(false);
+      const [isEmailEditable, setIsEmailEditable] = React.useState(false);
+
+      return (
+        <div>
+          <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                View Email
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Email Preview for {lead.name}</DialogTitle>
+                <div className="flex rounded-md flex-row items-center text-sm mt-3 border shadow p-2 w-max font-semibold gap-4">
+                  <p>Edit Email </p>
+                  <Switch
+                    checked={isEmailEditable}
+                    onCheckedChange={(bool) => {
+                      setIsEmailEditable(bool);
+                    }}
+                  />
+                </div>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Subject</label>
+                  <Input
+                    defaultValue={lead.email.subject}
+                    readOnly={!isEmailEditable}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Body</label>
+                  <Textarea
+                    defaultValue={lead.email.body}
+                    className="min-h-[300px] mt-1"
+                    readOnly={!isEmailEditable}
+                  />
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      );
+    },
   },
   {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
       const lead = row.original;
-      const [isEmailDialogOpen, setIsEmailDialogOpen] = React.useState(false);
-      const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-      const [isPersonalizeDialogOpen, setIsPersonalizeDialogOpen] =
-        React.useState(false);
-      const [emailBody, setEmailBody] = React.useState(
-        "Hello " + lead.name + ",\n\nI hope this email finds you well..."
-      );
-
-      const handleSendEmail = () => {
-        // Implement email sending logic here
-        console.log("Sending email to:", lead.email);
-        console.log("Email body:", emailBody);
-        setIsEmailDialogOpen(false);
-      };
-
-      const handleDelete = () => {
-        // Implement delete logic here
-        console.log("Deleting lead:", lead.id);
-      };
-
-      const handlePersonalize = () => {
-        // Implement personalize logic here
-        console.log("Personalizing lead:", lead.id);
-      };
 
       return (
         <div className="flex space-x-2">
@@ -290,68 +227,28 @@ export const columns: ColumnDef<Lead>[] = [
             className="cursor-pointer"
             variant="default"
             size="sm"
-            onClick={() => setIsEmailDialogOpen(true)}
+            onClick={() => handleSendEmailClick(lead)}
           >
             Send Email
             <Mail className="h-4 w-4" />
           </Button>
-          <SimpleDialog
-            isOpen={isEmailDialogOpen}
-            onClose={() => setIsEmailDialogOpen(false)}
-            title={`Send Email to ${lead.name}`}
-          >
-            <div className="mb-4">
-              <p className="text-sm text-gray-500 mb-2">
-                Edit the email content before sending to {lead.email}
-              </p>
-              <SimpleTextarea
-                value={emailBody}
-                onChange={(e) => setEmailBody(e.target.value)}
-                className="min-h-[300px]"
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsEmailDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSendEmail}>Send Email</Button>
-            </div>
-          </SimpleDialog>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsPersonalizeDialogOpen(true)}
+            onClick={() => handlePersonalizeClick(lead)}
             className="cursor-pointer"
           >
             Personalize
             <User className="h-4 w-4" />
           </Button>
-          <ConfirmDialog
-            isOpen={isPersonalizeDialogOpen}
-            onClose={() => setIsPersonalizeDialogOpen(false)}
-            onConfirm={handlePersonalize}
-            title="Personalize Lead"
-            message={`Are you sure you want to personalize the lead "${lead.name}"?`}
-          />
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => setIsDeleteDialogOpen(true)}
+            onClick={() => handleDeleteClick(lead)}
             className="cursor-pointer"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
-          <ConfirmDialog
-            isOpen={isDeleteDialogOpen}
-            onClose={() => setIsDeleteDialogOpen(false)}
-            onConfirm={handleDelete}
-            title="Delete Lead"
-            message={`Are you sure you want to delete the lead "${lead.name}"? This action cannot be undone.`}
-            confirmText="Delete"
-          />
         </div>
       );
     },
