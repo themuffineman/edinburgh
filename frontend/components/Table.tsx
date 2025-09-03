@@ -83,7 +83,6 @@ const SimpleDialog = ({
   );
 };
 
-// Simple textarea component since we don't have the UI textarea component
 const SimpleTextarea = ({
   value,
   onChange,
@@ -230,17 +229,11 @@ export const columns: ColumnDef<Lead>[] = [
     ),
   },
   {
-    accessorKey: "facebook",
-    header: "Facebook",
+    accessorKey: "emailAddress",
+    header: "Email Address",
     cell: ({ row }) => (
       <div className="lowercase max-w-28 truncate">
-        <Link
-          target="_blank"
-          className="hover:underline"
-          href={row.getValue("facebook")}
-        >
-          {row.getValue("facebook")}
-        </Link>
+        {row.getValue("emailAddress")}
       </div>
     ),
   },
@@ -331,6 +324,7 @@ export const columns: ColumnDef<Lead>[] = [
             variant="outline"
             size="sm"
             onClick={() => setIsPersonalizeDialogOpen(true)}
+            className="cursor-pointer"
           >
             Personalize
             <User className="h-4 w-4" />
@@ -346,8 +340,8 @@ export const columns: ColumnDef<Lead>[] = [
             variant="destructive"
             size="sm"
             onClick={() => setIsDeleteDialogOpen(true)}
+            className="cursor-pointer"
           >
-            Delete
             <Trash2 className="h-4 w-4" />
           </Button>
           <ConfirmDialog

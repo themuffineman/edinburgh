@@ -3,7 +3,7 @@ export type Lead = {
   name: string;
   website: string;
   linkedin: string;
-  facebook: string;
+  emailAddress: string;
   email: string;
 };
 
