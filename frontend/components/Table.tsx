@@ -53,7 +53,53 @@ import {
 import { Lead, LeadsTableProps } from "./types";
 import Link from "next/link";
 import { Switch } from "./ui/switch";
-
+import { CSVUploader } from "./CSVUploader";
+const sampleLeads: Lead[] = [
+  {
+    id: 1,
+    name: "John Doe",
+    website: "https://johndoe.com",
+    linkedin: "https://linkedin.com/in/johndoe",
+    emailAddress: "https://facebook.com/johndoe",
+    email: {
+      subject: "Hello John",
+      body: "Hi John,\n\nI wanted to reach out and tell you about our services...\n\nBest,\nYour Name",
+    },
+  },
+  {
+    id: 2,
+    name: "Jane Smith",
+    website: "https://janesmith.io",
+    linkedin: "https://linkedin.com/in/janesmith",
+    emailAddress: "https://facebook.com/janesmith",
+    email: {
+      subject: "Hello Jane",
+      body: "Hello Jane,\n\nWe think our solution could help you achieve...\n\nCheers,\nYour Name",
+    },
+  },
+  {
+    id: 3,
+    name: "Mike Johnson",
+    website: "https://mikejohnson.co",
+    linkedin: "https://linkedin.com/in/mikejohnson",
+    emailAddress: "https://facebook.com/mikejohnson",
+    email: {
+      subject: "Hello Mike",
+      body: "Dear Mike,\n\nI wanted to share something that could be valuable to you...\n\nRegards,\nYour Name",
+    },
+  },
+  {
+    id: 4,
+    name: "Emily Davis",
+    website: "https://emilydavis.net",
+    linkedin: "https://linkedin.com/in/emilydavis",
+    emailAddress: "https://facebook.com/emilydavis",
+    email: {
+      subject: "Hello Emily",
+      body: "Hi Emily,\n\nI hope you're doing well! I wanted to reach out regarding...\n\nThanks,\nYour Name",
+    },
+  },
+];
 // Simple onclick functions that take row data as parameters
 const handleSendEmailClick = (leadData: Lead) => {
   alert("Send Email btn clicked");
@@ -255,7 +301,7 @@ export const columns: ColumnDef<Lead>[] = [
   },
 ];
 
-export function LeadsTable({ leads }: LeadsTableProps) {
+export function LeadsTable() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -263,6 +309,12 @@ export function LeadsTable({ leads }: LeadsTableProps) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  // const [leadsFile, setLeadsFile] = React.useState<Lead[]>(sampleLeads);
+  const [leads, setLeads] = React.useState<Lead[]>(sampleLeads);
+
+  const handleLeadsUpload = (newLeads: Lead[]) => {
+    setLeads(newLeads);
+  };
 
   const table = useReactTable({
     data: leads,
@@ -294,32 +346,35 @@ export function LeadsTable({ leads }: LeadsTableProps) {
           }
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2 ml-auto">
+          <CSVUploader onLeadsUpload={handleLeadsUpload} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                Columns <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <div className="overflow-x-auto w-full rounded-md border">
         <Table className="w-full min-w-max">

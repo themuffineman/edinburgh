@@ -1,7 +1,11 @@
+"use client";
+
+import * as React from "react";
 import { LeadsTable } from "@/components/Table";
-import { Table } from "@/components/ui/table";
-import Image from "next/image";
-const sampleLeads = [
+import { CSVUploader } from "@/components/CSVUploader";
+import { Lead } from "@/components/types";
+
+const sampleLeads: Lead[] = [
   {
     id: 1,
     name: "John Doe",
@@ -58,8 +62,8 @@ export default function Home() {
           </span>{" "}
           🕰️
         </h1>
-        <div className="w-full max-w-full overflow-x-auto">
-          <LeadsTable leads={sampleLeads} />
+        <div className="w-full max-w-full flex flex-col items-start gap-2 overflow-x-auto">
+          <LeadsTable />
         </div>
       </main>
     </div>
