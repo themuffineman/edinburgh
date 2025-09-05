@@ -8,50 +8,70 @@ from openai import OpenAI
 from pydantic import BaseModel
 from strip_markdown import strip_markdown
 from typing import Dict, List
+from apify_client import ApifyClient
 import json
 load_dotenv()
+
 intelligence=os.getenv("OPEN_AI_API_KEY")
+apify_token = os.getenv("APIFY_TOKEN")
 client = OpenAI(api_key=intelligence)
+apify_client = ApifyClient(apify_token)
+
 class Custom_Email(BaseModel):
-    subject: str
-    email:str
+    icebreaker:str
 
-
+def extract_linkedin_posts(url:str) -> str:
+    post_limit = 4
+    linkedin_profiles = [url]
+    linkedin_json = {
+        "deepScrape": False,
+        "limitPerSource": 3,
+        "rawData": False,
+        "urls": [
+            url
+        ]
+    }
+    actor_run = apify_client.actor('supreme_coder/linkedin-post').call(
+        run_input=linkedin_json
+    )
+    dataset_items = apify_client.dataset(actor_run['defaultDatasetId']).list_items().items
+    posts = list(map(lambda x: x["text"],dataset_items))
+    return posts
+     
 def extract_info_from_website(url:str, name:str) -> str:
-        max_tokens_per_page = 100000
-        dossier = []
-        summarry_prompt = """
-            Use the markdown from the website below and write me a detailed description of what the business is about. 
-            Here's the content of a website. Give me as much detail as possible
-        """
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False, timeout=60000, )
-            page = browser.new_page()
-            page.goto(url)
-            page_url = page.url
-            if(page_url.endswith("/")):
-                 page_url = page_url[:-1]
-                 print("Formated Url without / -->", page_url)
-            body_html = page.query_selector("body").inner_html()
-            markdowns = [convert_to_markdown(body_html)]
-            for markdown_text in markdowns:
-                plain_text = strip_markdown(markdown_text)
-                print(plain_text)
-                if((len(plain_text)/4) > max_tokens_per_page): 
-                    print("Too expensive to scrape")
-                    return
-                response = client.responses.create(
-                    model="gpt-5-nano",
-                    input=f"""
-                        {summarry_prompt}
-                        ---------------------------------
-                        {plain_text}
-                    """
-                )
-                dossier.append({"name":name, "website_content":json.loads(response.output_text)})
-            browser.close()
-extract_info_from_website("https://looca.app", "Looca")
+    max_tokens_per_page = 100000
+    dossier = []
+    summarry_prompt = """
+        Use the markdown from the website below and write me a detailed description of what the business is about. 
+        Here's the content of a website. Give me as much detail as possible.
+    """
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, timeout=60000, )
+        page = browser.new_page()
+        page.goto(url)
+        page_url = page.url
+        if(page_url.endswith("/")):
+                page_url = page_url[:-1]
+                print("Formated Url without / -->", page_url)
+        body_html = page.query_selector("body").inner_html()
+        markdowns = [convert_to_markdown(body_html)]
+        for markdown_text in markdowns:
+            plain_text = strip_markdown(markdown_text)
 
+            if((len(plain_text)/4) > max_tokens_per_page): 
+                print("Too expensive to scrape")
+                return
+            response = client.responses.create(
+                model="gpt-5-nano",
+                input=f"""
+                    {summarry_prompt}
+                    ---------------------------------
+                    {plain_text}
+                """
+            )
+            dossier.append({"name":name, "website_content":response.output_text})
+        browser.close()    
+    return dossier
 
 def generateCustomEmail(dossier: List[Dict[str, str]]) -> Dict[str, str]:
     prompt = f"""
@@ -100,14 +120,16 @@ def generateCustomEmail(dossier: List[Dict[str, str]]) -> Dict[str, str]:
     """
     response = client.responses.parse(
         model="gpt-5-nano",
-        input={
+        input=[
             {
                 "role": "system",
                 "content": system_prompt
             },
-            {"role": "user", "content": prompt},
-        },
-        text_format=Custom_Email,
+            {
+                "role": "user",
+                "content": prompt
+            },
+        ],
+        text_format=Custom_Email
     )
-    return response.output_parsed
-
+    return response.output_text
