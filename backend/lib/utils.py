@@ -9,8 +9,6 @@ from pydantic import BaseModel
 from strip_markdown import strip_markdown
 from typing import Dict, List
 import json
-
-
 load_dotenv()
 intelligence=os.getenv("OPEN_AI_API_KEY")
 client = OpenAI(api_key=intelligence)
@@ -43,7 +41,7 @@ def extract_info_from_website(url:str, name:str) -> str:
                     print("Too expensive to scrape")
                     return
                 response = client.responses.create(
-                    model="gpt-4.1-nano",
+                    model="gpt-5-nano",
                     input=f"""
                         {summarry_prompt}
                         ---------------------------------
@@ -101,7 +99,7 @@ def generateCustomEmail(dossier: List[Dict[str, str]]) -> Dict[str, str]:
         {"icebreaker":"Hey Aina, love what you're doing at Maki. I noticed your focus on white-labelling services, which tells me discretion is a big deal for you guys. I put something together that helps companies like yours scale outreach—AI finds people hiring website devs and pitches them with demo sites. Costs just a few cents to run, super high converting, and I think it fits with Maki’s emphasis on scalability."}    
     """
     response = client.responses.parse(
-        model="gpt-4o-2024-08-06",
+        model="gpt-5-nano",
         input={
             {
                 "role": "system",
