@@ -4,22 +4,24 @@ import os
 from dotenv import load_dotenv
 from typing import Dict, List, Optional
 from openai import OpenAI
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 import time
 from html_to_markdown import convert_to_markdown
 import re
 from apify_client import ApifyClient
 from strip_markdown import strip_markdown
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
+print("\033[1;32;40mA PENDORIAN PRODUCTION\033[0m")
 
 # Initialize API clients from environment variables
+
 openai_api_key = os.getenv("OPEN_AI_API_KEY")
 apify_token = os.getenv("APIFY_TOKEN")
 client = OpenAI(api_key=openai_api_key)
 apify_client = ApifyClient(apify_token)
-
 # --- FastAPI Setup ---
 app = FastAPI(
     title="Email Personalization API",
@@ -40,7 +42,6 @@ class EmailRequest(BaseModel):
     website_url: str
 
 # --- Your Existing Functions (Modified for server context) ---
-
 def extract_linkedin_posts(url: str) -> List[str]:
     """Extracts recent posts from a LinkedIn profile URL using Apify."""
     print(f"Extracting LinkedIn posts from: {url}")
@@ -61,7 +62,7 @@ def extract_linkedin_posts(url: str) -> List[str]:
         print(f"Error extracting LinkedIn posts: {e}")
         return []
 
-def extract_info_from_website(url: str) -> Optional[str]:
+async def extract_info_from_website(url: str) -> Optional[str]:
     """Scrapes a website and returns a detailed summary using a language model."""
     max_tokens_per_page = 100000
     summary_prompt = """
@@ -69,30 +70,35 @@ def extract_info_from_website(url: str) -> Optional[str]:
         Here's the content of a website. Give me as much detail as possible.
     """
     print(f"Extracting website info from: {url}")
+    
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, timeout=60000)
-            page = browser.new_page()
-            page.goto(url)
-            body_html = page.query_selector("body").inner_html()
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True, timeout=60000)
+            page = await browser.new_page()
+            await page.goto(url)
+            
+            body_handle = await page.query_selector("body")
+            body_html = await body_handle.inner_html()
+            
             markdown_text = convert_to_markdown(body_html)
             plain_text = strip_markdown(markdown_text)
 
             if (len(plain_text) / 4) > max_tokens_per_page:
                 print("Website content too large to summarize.")
+                await browser.close()
                 return None
 
-            response = client.completions.create(
-                model="gpt-3.5-turbo-instruct",  # Using a common model
-                prompt=f"{summary_prompt}\n---------------------------------\n{plain_text}"
-            )
-            dossier = response.choices[0].text
-            browser.close()
+            # response = client.completions.create(
+            #     model="gpt-3.5-turbo-instruct",
+            #     prompt=f"{summary_prompt}\n---------------------------------\n{plain_text}"
+            # )
+            dossier = plain_text #response.choices[0].text
+            await browser.close()
             return dossier
+
     except Exception as e:
         print(f"Error extracting website info: {e}")
         return None
-
 def generateCustomEmail(dossier: Dict) -> Custom_Email:
     """Generates a personalized email and subject line using a language model."""
     prompt = f"""
@@ -104,7 +110,7 @@ def generateCustomEmail(dossier: Dict) -> Custom_Email:
         We want to use this data to craft a super personalized email so that it looks like we did an in-depth research into them.
 
         You'll return the email in the following JSON format:
-        "email":"Hey [decision maker's name], Love [thing]—also a fan of [otherThing]. This might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. To put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since [business-name] is mainly focused on SEO, it feels like a solid fit. And just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site (and introducing myself), so you can see this isn’t coming from a software list.", "subject":"Could this work for you too?"
+        "email":"Hey [decision maker's name], Love [thing]—also a fan of [otherThing]. This might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. To put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since [business-name] is mainly focused on SEO, it feels like a solid fit. And just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site , so you can see this isn’t coming from a software list.", "subject":"Could this work for you too [decision maker name]?"
         Rules:
         Write in a spartan/laconic tone of voice.
         Make sure to use the above format when constructing the email. You are only really filling out the variable based on the info; keep the rest the same. We wrote it this way on purpose.
@@ -147,7 +153,7 @@ def generateCustomEmail(dossier: Dict) -> Custom_Email:
         "Aina runs Maki, an SEO agency focused on helping Local Businesses rank on google maps"
 
         Output (JSON only):
-        {"email":"Hey Maki, Love love what you're doing at Maki. I noticed your focus on SEO. which tells me ranking is a big deal for you guys. This might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. To put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since Maki is mainly focused on SEO, it feels like a solid fit. And just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site (and introducing myself), so you can see this isn’t coming from a software list.", "subject":"Could this work for you too Maki?"}
+        {"email":"Hey Maki, Love love what you're doing at Maki. I noticed your focus on SEO. which tells me ranking is a big deal for you guys. This might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. To put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since Maki is mainly focused on SEO, it feels like a solid fit. And just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site, so you can see this isn’t coming from a software list.", "subject":"Could this work for you too Maki?"}
     """
     try:
         response = client.chat.completions.create(
@@ -172,6 +178,7 @@ async def generate_personalized_email(request_data: EmailRequest):
     Generates a personalized cold email based on company and decision maker information.
     """
     try:
+        print("Received Request: ",datetime.now())
         # 1. Scrape Website
         website_content = extract_info_from_website(request_data.website_url)
         if not website_content:
