@@ -108,71 +108,12 @@ const sampleLeads: Lead[] = [
     },
   },
 ];
-// Simple onclick functions that take row data as parameters
-const handleSendEmailClick = async (leadData: Lead) => {
-  try {
-    if (!SERVER_URL) {
-      return;
-    }
-    toast.info("Sending email...");
-    const res = await fetch(`${SERVER_URL}/send-email`, {
-      method: "POST",
-      body: JSON.stringify({
-        subject: leadData.email.subject,
-        body: leadData.email.body,
-      }),
-    });
-    if (res.ok) {
-      toast.success("Email Successully Sent");
-    } else {
-      throw new Error("Email data undefined");
-    }
-  } catch (error: any) {
-    toast.error(`Something went wrong❌: , ${error.message}`, {
-      duration: 5000,
-    });
-  }
-};
-
-const handleDeleteClick = (leadData: Lead) => {};
-
-const generateEmail = async (leadData: Lead) => {
-  try {
-    if (!SERVER_URL) {
-      return;
-    }
-    toast.info("Generating email...");
-    const res: ServerEmailResponse = await request(
-      `${SERVER_URL}/generate-email`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          company_name: leadData.companyName,
-          decision_maker_name: leadData.name,
-          decision_maker_title: leadData.jobTitle,
-          linkedin_url: leadData.linkedin,
-          website_url: leadData.website,
-        }),
-      }
-    );
-    if (res) {
-      toast.success("Email Successully Generated✅");
-      console.log(res);
-      return res;
-    } else {
-      throw new Error("Email data undefined");
-    }
-  } catch (error: any) {
-    toast.error(`Something went wrong --> ${error.message}`, {
-      duration: 5000,
-    });
-  }
-};
-
-export const columns: ColumnDef<Lead>[] = [
+// Column definitions will be created inside the component to access action functions
+const createColumns = (
+  handleSendEmailClick: (leadData: Lead) => Promise<void>,
+  handleDeleteClick: (leadData: Lead) => void,
+  generateEmail: (leadData: Lead) => Promise<void>
+): ColumnDef<Lead>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -366,9 +307,7 @@ export const columns: ColumnDef<Lead>[] = [
             className="cursor-pointer"
             variant="default"
             size="sm"
-            onClick={() => {
-              const res = handleSendEmailClick(lead);
-            }}
+            onClick={() => handleSendEmailClick(lead)}
           >
             Send Email
             <Mail className="h-4 w-4" />
@@ -409,6 +348,112 @@ export function LeadsTable() {
   const handleLeadsUpload = (newLeads: Lead[]) => {
     setLeads(newLeads);
   };
+
+  // Action functions with access to leads state
+  const handleSendEmailClick = async (leadData: Lead) => {
+    try {
+      if (!SERVER_URL) {
+        return;
+      }
+      toast.info("Sending email...");
+      const res = await fetch(`${SERVER_URL}/send-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subject: leadData.email.subject,
+          body: leadData.email.body,
+          emailAddress: leadData.emailAddress,
+        }),
+      });
+      if (res.ok) {
+        toast.success("Email Successfully Sent");
+        // Remove the lead from the list after successful send
+        setLeads((prevLeads) =>
+          prevLeads.filter((lead) => lead.id !== leadData.id)
+        );
+
+        // Send to CRM (add contacted lead to backend)
+        try {
+          await fetch(`${SERVER_URL}/add-to-crm`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(leadData),
+          });
+        } catch (crmError) {
+          console.error("Failed to add to CRM:", crmError);
+        }
+      } else {
+        throw new Error("Failed to send email");
+      }
+    } catch (error: any) {
+      toast.error(`Something went wrong❌: ${error.message}`, {
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleDeleteClick = (leadData: Lead) => {
+    // Remove the lead from the leads array
+    setLeads((prevLeads) =>
+      prevLeads.filter((lead) => lead.id !== leadData.id)
+    );
+    toast.success("Lead deleted successfully");
+  };
+
+  const generateEmail = async (leadData: Lead) => {
+    try {
+      if (!SERVER_URL) {
+        return;
+      }
+      toast.info("Generating email...");
+      const res: ServerEmailResponse = await request(
+        `${SERVER_URL}/generate-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            company_name: leadData.companyName,
+            decision_maker_name: leadData.name,
+            decision_maker_title: leadData.jobTitle,
+            linkedin_url: leadData.linkedin,
+            website_url: leadData.website,
+          }),
+        }
+      );
+      if (res) {
+        toast.success("Email Successfully Generated✅");
+        console.log(res);
+
+        // Update the lead's email data with the generated email
+        setLeads((prevLeads) =>
+          prevLeads.map((lead) =>
+            lead.id === leadData.id
+              ? { ...lead, email: { subject: res.subject, body: res.body } }
+              : lead
+          )
+        );
+      } else {
+        throw new Error("Email data undefined");
+      }
+    } catch (error: any) {
+      toast.error(`Something went wrong --> ${error.message}`, {
+        duration: 5000,
+      });
+    }
+  };
+
+  // Create columns with access to action functions
+  const columns = createColumns(
+    handleSendEmailClick,
+    handleDeleteClick,
+    generateEmail
+  );
 
   const table = useReactTable({
     data: leads,
