@@ -13,14 +13,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  MoreHorizontal,
-  Mail,
-  Trash2,
-  User,
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, Mail, Trash2, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,6 +47,13 @@ import { Lead, LeadsTableProps } from "./types";
 import Link from "next/link";
 import { Switch } from "./ui/switch";
 import { CSVUploader } from "./CSVUploader";
+import { request } from "@/lib/utils";
+import { toast } from "sonner";
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+type ServerEmailResponse = {
+  email: string;
+  subject: string;
+};
 const sampleLeads: Lead[] = [
   {
     id: 1,
@@ -61,6 +61,8 @@ const sampleLeads: Lead[] = [
     website: "https://johndoe.com",
     linkedin: "https://linkedin.com/in/johndoe",
     emailAddress: "https://facebook.com/johndoe",
+    companyName: "ACME Inc",
+    jobTitle: "Founder & CEO",
     email: {
       subject: "Hello John",
       body: "Hi John,\n\nI wanted to reach out and tell you about our services...\n\nBest,\nYour Name",
@@ -72,6 +74,8 @@ const sampleLeads: Lead[] = [
     website: "https://janesmith.io",
     linkedin: "https://linkedin.com/in/janesmith",
     emailAddress: "https://facebook.com/janesmith",
+    companyName: "ACME Inc",
+    jobTitle: "Founder & CEO",
     email: {
       subject: "Hello Jane",
       body: "Hello Jane,\n\nWe think our solution could help you achieve...\n\nCheers,\nYour Name",
@@ -83,6 +87,8 @@ const sampleLeads: Lead[] = [
     website: "https://mikejohnson.co",
     linkedin: "https://linkedin.com/in/mikejohnson",
     emailAddress: "https://facebook.com/mikejohnson",
+    companyName: "ACME Inc",
+    jobTitle: "Founder & CEO",
     email: {
       subject: "Hello Mike",
       body: "Dear Mike,\n\nI wanted to share something that could be valuable to you...\n\nRegards,\nYour Name",
@@ -94,6 +100,8 @@ const sampleLeads: Lead[] = [
     website: "https://emilydavis.net",
     linkedin: "https://linkedin.com/in/emilydavis",
     emailAddress: "https://facebook.com/emilydavis",
+    companyName: "ACME Inc",
+    jobTitle: "Founder & CEO",
     email: {
       subject: "Hello Emily",
       body: "Hi Emily,\n\nI hope you're doing well! I wanted to reach out regarding...\n\nThanks,\nYour Name",
@@ -113,10 +121,33 @@ const handleDeleteClick = (leadData: Lead) => {
   console.log("Delete clicked for lead:", leadData);
 };
 
-const handlePersonalizeClick = (leadData: Lead) => {
-  alert("Personalize btn clicked");
-  // Implement personalize logic here later
-  console.log("Personalize clicked for lead:", leadData);
+const generateEmail = async (leadData: Lead) => {
+  try {
+    if (!SERVER_URL) {
+      return;
+    }
+    toast.info("Generating email...");
+    const res: ServerEmailResponse = await request(SERVER_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        company_name: leadData.companyName,
+        decision_maker_name: leadData.name,
+        decision_maker_title: leadData.jobTitle,
+        linkedin_url: leadData.linkedin,
+        website_url: leadData.website,
+      }),
+    });
+    if (res) {
+      toast.success("Email Successully Generated✅");
+      return res;
+    } else {
+      throw new Error("Email data undefined");
+    }
+  } catch (error: any) {
+    toast.error(`Something went wrong❌: , ${error.message}`, {
+      duration: 5000,
+    });
+  }
 };
 
 export const columns: ColumnDef<Lead>[] = [
@@ -157,6 +188,44 @@ export const columns: ColumnDef<Lead>[] = [
     },
     cell: ({ row }) => (
       <div className="capitalize trancate max-w-28">{row.getValue("name")}</div>
+    ),
+  },
+  {
+    accessorKey: "jobTitle",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Job Title
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="capitalize trancate max-w-28">
+        {row.getValue("jobTitle")}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "companyName",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Company Name
+          <ArrowUpDown />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="capitalize trancate max-w-28">
+        {row.getValue("companyName")}
+      </div>
     ),
   },
   {
@@ -281,10 +350,10 @@ export const columns: ColumnDef<Lead>[] = [
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handlePersonalizeClick(lead)}
+            onClick={() => generateEmail(lead)}
             className="cursor-pointer"
           >
-            Personalize
+            Generate Email
             <User className="h-4 w-4" />
           </Button>
           <Button
@@ -309,7 +378,6 @@ export function LeadsTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  // const [leadsFile, setLeadsFile] = React.useState<Lead[]>(sampleLeads);
   const [leads, setLeads] = React.useState<Lead[]>(sampleLeads);
 
   const handleLeadsUpload = (newLeads: Lead[]) => {

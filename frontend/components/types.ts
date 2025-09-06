@@ -4,6 +4,8 @@ export type Lead = {
   website: string;
   linkedin: string;
   emailAddress: string;
+  companyName: string;
+  jobTitle: string;
   email: {
     subject: string;
     body: string;
