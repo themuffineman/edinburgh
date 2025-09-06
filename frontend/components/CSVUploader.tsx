@@ -40,6 +40,9 @@ export function CSVUploader({ onLeadsUpload }: CSVUploaderProps) {
             subject: "",
             body: "",
           },
+          companyName:
+            row.companyName || row.company || row.Company || row.company_name,
+          jobTitle: row.jobTitle || row.title || row.job_title || row.job,
         }));
         onLeadsUpload(leads);
       },

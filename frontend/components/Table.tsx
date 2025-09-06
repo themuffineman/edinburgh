@@ -209,7 +209,9 @@ export const columns: ColumnDef<Lead>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="capitalize trancate max-w-28">{row.getValue("name")}</div>
+      <div className="capitalize truncate max-w-28 ">
+        {row.getValue("name")}
+      </div>
     ),
   },
   {
@@ -226,7 +228,7 @@ export const columns: ColumnDef<Lead>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="capitalize trancate max-w-28">
+      <div className="capitalize truncate max-w-28">
         {row.getValue("jobTitle")}
       </div>
     ),
@@ -245,7 +247,7 @@ export const columns: ColumnDef<Lead>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="capitalize trancate max-w-28">
+      <div className="capitalize truncate max-w-28">
         {row.getValue("companyName")}
       </div>
     ),
@@ -522,6 +524,10 @@ export function LeadsTable() {
         <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
+        </div>
+        <div className="font-bold">
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
+          {table.getPageCount()}
         </div>
         <div className="space-x-2">
           <Button
