@@ -57,11 +57,11 @@ type ServerEmailResponse = {
 const sampleLeads: Lead[] = [
   {
     id: 1,
-    name: "John Doe",
-    website: "https://johndoe.com",
-    linkedin: "https://linkedin.com/in/johndoe",
-    emailAddress: "https://facebook.com/johndoe",
-    companyName: "ACME Inc",
+    name: "Lou Aleman",
+    website: "http://www.coloradoseoservices.net",
+    linkedin: "http://www.linkedin.com/in/lou-aleman-79514910",
+    emailAddress: "lou@coloradoseoservices.net",
+    companyName: "Colorado SEO Services",
     jobTitle: "Founder & CEO",
     email: {
       subject: "Hello John",
