@@ -146,6 +146,9 @@ const generateEmail = async (leadData: Lead) => {
       `${SERVER_URL}/generate-email`,
       {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           company_name: leadData.companyName,
           decision_maker_name: leadData.name,
@@ -157,12 +160,13 @@ const generateEmail = async (leadData: Lead) => {
     );
     if (res) {
       toast.success("Email Successully Generated✅");
+      console.log(res);
       return res;
     } else {
       throw new Error("Email data undefined");
     }
   } catch (error: any) {
-    toast.error(`Something went wrong❌: , ${error.message}`, {
+    toast.error(`Something went wrong --> ${error.message}`, {
       duration: 5000,
     });
   }

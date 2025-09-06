@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
@@ -28,7 +29,21 @@ app = FastAPI(
     description="An API to generate personalized cold emails by scraping websites and LinkedIn.",
     version="1.0.0"
 )
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "http://127.0.0.1:65506", 
+    "*"
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 # --- Pydantic Models ---
 class Custom_Email(BaseModel):
     body: str
@@ -180,7 +195,7 @@ async def generate_personalized_email(request_data: EmailRequest):
     try:
         print("Received Request: ",datetime.now())
         # 1. Scrape Website
-        website_content = extract_info_from_website(request_data.website_url)
+        website_content = await extract_info_from_website(request_data.website_url)
         if not website_content:
             raise HTTPException(status_code=500, detail="Could not scrape or summarize website content.")
 
