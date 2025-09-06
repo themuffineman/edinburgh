@@ -51,7 +51,7 @@ import { request } from "@/lib/utils";
 import { toast } from "sonner";
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
 type ServerEmailResponse = {
-  email: string;
+  body: string;
   subject: string;
 };
 const sampleLeads: Lead[] = [
@@ -109,17 +109,32 @@ const sampleLeads: Lead[] = [
   },
 ];
 // Simple onclick functions that take row data as parameters
-const handleSendEmailClick = (leadData: Lead) => {
-  alert("Send Email btn clicked");
-  // Implement email sending logic here later
-  console.log("Send Email clicked for lead:", leadData);
+const handleSendEmailClick = async (leadData: Lead) => {
+  try {
+    if (!SERVER_URL) {
+      return;
+    }
+    toast.info("Sending email...");
+    const res = await fetch(`${SERVER_URL}/send-email`, {
+      method: "POST",
+      body: JSON.stringify({
+        subject: leadData.email.subject,
+        body: leadData.email.body,
+      }),
+    });
+    if (res.ok) {
+      toast.success("Email Successully Sent");
+    } else {
+      throw new Error("Email data undefined");
+    }
+  } catch (error: any) {
+    toast.error(`Something went wrong❌: , ${error.message}`, {
+      duration: 5000,
+    });
+  }
 };
 
-const handleDeleteClick = (leadData: Lead) => {
-  alert("Delete btn clicked");
-  // Implement delete logic here later
-  console.log("Delete clicked for lead:", leadData);
-};
+const handleDeleteClick = (leadData: Lead) => {};
 
 const generateEmail = async (leadData: Lead) => {
   try {
@@ -127,16 +142,19 @@ const generateEmail = async (leadData: Lead) => {
       return;
     }
     toast.info("Generating email...");
-    const res: ServerEmailResponse = await request(SERVER_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        company_name: leadData.companyName,
-        decision_maker_name: leadData.name,
-        decision_maker_title: leadData.jobTitle,
-        linkedin_url: leadData.linkedin,
-        website_url: leadData.website,
-      }),
-    });
+    const res: ServerEmailResponse = await request(
+      `${SERVER_URL}/generate-email`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          company_name: leadData.companyName,
+          decision_maker_name: leadData.name,
+          decision_maker_title: leadData.jobTitle,
+          linkedin_url: leadData.linkedin,
+          website_url: leadData.website,
+        }),
+      }
+    );
     if (res) {
       toast.success("Email Successully Generated✅");
       return res;
@@ -342,7 +360,9 @@ export const columns: ColumnDef<Lead>[] = [
             className="cursor-pointer"
             variant="default"
             size="sm"
-            onClick={() => handleSendEmailClick(lead)}
+            onClick={() => {
+              const res = handleSendEmailClick(lead);
+            }}
           >
             Send Email
             <Mail className="h-4 w-4" />

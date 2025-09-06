@@ -31,7 +31,7 @@ app = FastAPI(
 
 # --- Pydantic Models ---
 class Custom_Email(BaseModel):
-    email: str
+    body: str
     subject: str
 
 class EmailRequest(BaseModel):
@@ -88,11 +88,11 @@ async def extract_info_from_website(url: str) -> Optional[str]:
                 await browser.close()
                 return None
 
-            # response = client.completions.create(
-            #     model="gpt-3.5-turbo-instruct",
-            #     prompt=f"{summary_prompt}\n---------------------------------\n{plain_text}"
+            # response = client.responses.create(
+            #     model="gpt-5-nano",
+            #     input=f"{summary_prompt}\n---------------------------------\n{plain_text}"
             # )
-            dossier = plain_text #response.choices[0].text
+            dossier = plain_text #response.output_text
             await browser.close()
             return dossier
 
@@ -132,7 +132,7 @@ def generateCustomEmail(dossier: Dict) -> Custom_Email:
 
         ### Output Format:
         - Always return your response as valid JSON.
-        - Use the exact structure: {"email":"...", "subject":"...."}
+        - Use the exact structure: {"body":"...", "subject":"...."}
         - Do not include explanations, comments, or extra text. JSON only.
 
         ### Writing Style:
@@ -153,18 +153,18 @@ def generateCustomEmail(dossier: Dict) -> Custom_Email:
         "Aina runs Maki, an SEO agency focused on helping Local Businesses rank on google maps"
 
         Output (JSON only):
-        {"email":"Hey Maki, Love love what you're doing at Maki. I noticed your focus on SEO. which tells me ranking is a big deal for you guys. This might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. To put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since Maki is mainly focused on SEO, it feels like a solid fit. And just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site, so you can see this isn’t coming from a software list.", "subject":"Could this work for you too Maki?"}
+        {"body":"Hey Maki, Love love what you're doing at Maki. I noticed your focus on SEO. which tells me ranking is a big deal for you guys. This might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. To put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since Maki is mainly focused on SEO, it feels like a solid fit. And just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site, so you can see this isn’t coming from a software list.", "subject":"Could this work for you too Maki?"}
     """
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo", # Updated model name for chat-based completion
-            response_format={"type": "json_object"},
-            messages=[
+        response = client.responses.parse(
+            model="gpt-5-nano", 
+            text_format=Custom_Email,
+            input=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ]
         )
-        email_data = response.choices[0].message.content
+        email_data = response.output_parsed
         return Custom_Email.model_validate_json(email_data)
     except Exception as e:
         print(f"Error generating custom email: {e}")
