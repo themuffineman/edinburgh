@@ -27,7 +27,9 @@ SMTP_PORT = 587
 EMAIL_ADDRESS = os.getenv("SENDER_EMAIL")
 EMAIL_PASSWORD = os.getenv("SENDER_PASSWORD")
 SENDER_NAME = os.getenv("SENDER_NAME")
+
 # Initialize API clients from environment variables
+
 openai_api_key = os.getenv("OPEN_AI_API_KEY")
 apify_token = os.getenv("APIFY_TOKEN")
 client = OpenAI(api_key=openai_api_key)
@@ -86,22 +88,24 @@ class Custom_Email(BaseModel):
     body: str
     subject: str
 
-class EmailRequest(BaseModel):
+class Email_Request(BaseModel):
     company_name: str
     decision_maker_name: str
     decision_maker_title: str
     linkedin_url: str
     website_url: str
-class EmailRequest(BaseModel):
+class Email_Sending_Request(BaseModel):
     recipients: List[str]
     subject: str
     html_content: str
     sender_name: str
-
+class Email_Sending_Response(BaseModel):
+    message:str
+    successful_recipients:list
 # --- API Endpoints ---
 
 @app.post("/generate-email", response_model=Custom_Email)
-async def generate_personalized_email(request_data: EmailRequest):
+async def generate_personalized_email(request_data: Email_Request):
     """
     Generates a personalized cold email based on company and decision maker information.
     """
@@ -136,8 +140,8 @@ async def generate_personalized_email(request_data: EmailRequest):
         # Catch any other unexpected errors
         print(f"An unexpected error occurred: {e}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred during email generation.")
-@app.post("/send-email", response_model=EmailRequest)
-def send_emails_endpoint(request: EmailRequest):
+@app.post("/send-email", response_model=Email_Sending_Request)
+def send_emails_endpoint(request: Email_Sending_Request):
     if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
         raise HTTPException(status_code=500, detail="Email address or password environment variables not set.")
 

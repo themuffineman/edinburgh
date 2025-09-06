@@ -13,7 +13,15 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Mail, Trash2, User } from "lucide-react";
+import {
+  ArrowUpDown,
+  CheckCircle2,
+  ChevronDown,
+  Loader2,
+  Mail,
+  Trash2,
+  User,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -254,8 +262,11 @@ const createColumns = (
         <div>
           <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" className="min-w-[115px]" size="sm">
                 View Email
+                {lead.email.body && (
+                  <CheckCircle2 className="size-4 stroke-green-500" />
+                )}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
@@ -300,12 +311,13 @@ const createColumns = (
     enableHiding: false,
     cell: ({ row }) => {
       const lead = row.original;
-
+      const [isGeneratingEmail, setIsGeneratingEmail] = React.useState(false);
       return (
         <div className="flex space-x-2">
           <Button
             className="cursor-pointer"
             variant="default"
+            disabled={!lead.email.body}
             size="sm"
             onClick={() => handleSendEmailClick(lead)}
           >
@@ -315,11 +327,23 @@ const createColumns = (
           <Button
             variant="outline"
             size="sm"
-            onClick={() => generateEmail(lead)}
-            className="cursor-pointer"
+            onClick={() => {
+              setIsGeneratingEmail(true);
+              generateEmail(lead).finally(() => {
+                setIsGeneratingEmail(false);
+              });
+            }}
+            className="cursor-pointer relative"
           >
-            Generate Email
-            <User className="h-4 w-4" />
+            Generate Email{" "}
+            {!lead.email.body && (
+              <span className="absolute -top-[2px] -right-[2px] border rounded-full size-[10px] bg-red-600 animate-pulse" />
+            )}
+            {isGeneratingEmail ? (
+              <Loader2 className="animate-spin size-4" />
+            ) : (
+              <User className="h-4 w-4" />
+            )}
           </Button>
           <Button
             variant="destructive"

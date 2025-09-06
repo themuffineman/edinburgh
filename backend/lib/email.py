@@ -23,10 +23,50 @@ SENDER_NAME = "Petrus Sheya"  # customize this
 class EmailRequest(BaseModel):
     recipients: List[str]
     subject: str
-    html_content: str
+    body_text: str
     sender_name: str = SENDER_NAME
 
-def send_email(to_address: str, subject: str, html_content: str, sender_name: str):
+def convert_text_to_html(body_text: str) -> str:
+    """
+    Convert plain text body to HTML format by creating <p> tags for each line break.
+    """
+    # Split text by line breaks and filter out empty lines
+    lines = [line.strip() for line in body_text.split('\n') if line.strip()]
+    
+    # Convert each line to a paragraph
+    html_paragraphs = [f"<p>{line}</p>" for line in lines]
+    
+    # Create full HTML structure
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            p {{
+                margin-bottom: 16px;
+            }}
+        </style>
+    </head>
+    <body>
+        {''.join(html_paragraphs)}
+    </body>
+    </html>
+    """
+    
+    return html_body
+
+def send_email(to_address: str, subject: str, body_text: str, sender_name: str):
     msg = MIMEMultipart("alternative")
     msg["From"] = f"{sender_name} <{EMAIL_ADDRESS}>"
     msg["To"] = to_address
@@ -35,13 +75,16 @@ def send_email(to_address: str, subject: str, html_content: str, sender_name: st
     msg["Message-ID"] = email.utils.make_msgid(domain=EMAIL_ADDRESS.split("@")[1])
     msg["Reply-To"] = EMAIL_ADDRESS
 
-    # Convert HTML to plain text
-    text_content = html2text.html2text(html_content)
+    # Convert plain text body to HTML format
+    html_content = convert_text_to_html(body_text)
+    
+    # Use the original body_text as plain text version
+    text_content = body_text
 
-    # Attach converted text
+    # Attach plain text version
     msg.attach(MIMEText(text_content, "plain", "utf-8"))
 
-    # Attach HTML
+    # Attach HTML version
     msg.attach(MIMEText(html_content, "html", "utf-8"))
 
     print(f"[*] Preparing to send to {to_address} (Hostinger Webmail fingerprint)")

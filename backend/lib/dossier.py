@@ -154,10 +154,12 @@ def generateCustomEmail(dossier: Dict) -> Custom_Email:
         We want to use this data to craft a super personalized email so that it looks like we did an in-depth research into them.
 
         You'll return the email in the following JSON format:
-        "email":"Hey [decision maker's name], [compliment]. This might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. To put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since [business-name] is mainly focused on SEO, it feels like a solid fit. And just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site (and introducing myself), so you can see this isn’t coming from a software list.", "subject":"Could this work for you too [decision maker name]?"
+        "email":"Hey [decision maker's name],\n [compliment]. \n So this might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. \nTo put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since [business-name] is mainly focused on SEO, it feels like a solid fit. \nAnd just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site, so you can see this isn’t coming from a software list.", "subject":"Could this work for you too [decision maker name]?"
         Rules:
         Write in a spartan/laconic tone of voice.
         Make sure to use the above format when constructing the email. We wrote it this way on purpose. When know what works. Stick to the format!
+        Do not add any extra paragrpahs, case studies or "postscriptum" in the email. Your role here is mostly to fill in the variables to make it more human friendly.
+        Do not add you own twist or anything that is not specified in the format. The format is King. I have refined and perfected over years of cold emailing. It's perfect.
         Shorten the company name wherever possible (say, “XYZ” instead of “XYZ Agency”).
         More examples: “Love AMS” instead of “Love AMS Professional Services”, “Love Mayo” instead of “Love Mayo Inc.”, etc.
         Do the same with locations. “San Fran” instead of “San Francisco”, “BC” instead of “British Columbia”, etc.
@@ -182,38 +184,32 @@ def generateCustomEmail(dossier: Dict) -> Custom_Email:
         ### Writing Style:
         - Spartan, laconic, professional tone.
         - Make it feel like we *really looked into their website*.
-        - Use the list of compliments provided. Again stick to them do not change or deviate from them. But you're free to edit slightly to make sure they fit the context of the dossier
+        - Use the list of compliments provided. Only use one per email. Again stick to them do not change or deviate from them. But you're free to edit slightly to make sure they fit the context of the dossier
         - Mention something small, specific, and non-obvious (not mission statements or generic compliments).
         - Avoid cookie-cutter phrases like "Love your orientation" or "Great marketing content."
 
         ### List of Compliments To Use
-        - There’s something about the way your team approaches SEO that makes me genuinely excited to learn from it.
-        - I might have spent way too much time reading your recent SEO posts… they're very insightful.
-        - Honestly, I’ve had a tab open on your linkedIn/site for days… the stuff you put out on SEO is very insightful .
-        - Your team’s creativity in SEO is the kind that makes me rethink my entire approach.
-        - I’ve read your latest SEO guide three times… just to make sure I didn’t miss anything.
-        - I love how your SEO work somehow manages to be both ambitious and ridiculously practical.
-        - There’s something about the way your team approaches SEO that makes me genuinely excited to learn from it.
-        - Really love the work you've been doing on SEO with [business name], I've been secretly cheering from the sidelines.
-        - I really admire the creativity [company] brings to the SEO space.
-        - I’ve been following [company]’s work in SEO, it’s honestly inspiring.
+        - Love the way your team approaches SEO it makes me genuinely excited to learn from it
+        - Really love the work you've been doing on [main service the provide based on dossier] with [business name], I've been secretly cheering from the sidelines.
+        - I really admire the creativity [company] brings to the [main service the provide based on dossier] space.
+        - I’ve been following [company]’s work in the [main service the provide based on dossier] space, it’s honestly inspiring.
         ### Rules:
         1. Shorten company names ("XYZ" instead of "XYZ Agency").
         2. Shorten location names ("San Fran" instead of "San Francisco").
         3. Tie the detail you found back to how our outreach system could help.
         4. Keep it natural, not robotic.
-        5. No extra line breaks or "\\n\\n".
+        5. Add extra line breaks "\\n\\n" to split different sentences and make the email more readable.
 
         ### Example:
         Input (summary):
         "Aina runs Maki, an SEO agency focused on helping Local Businesses rank on google maps"
 
         Output (JSON only):
-        {"body":"Hey Darren, Love your breakdown on local SEO, also enjoyed your guide on boosting local search traffic. This might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. To put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since [business-name] is mainly focused on SEO, it feels like a solid fit. And just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site (and introducing myself), so you can see this isn’t coming from a software list.", "subject":"Could this work for you too Maki?"}
+        {"body":"Hey Darren,\n Love the way your team approaches SEO it makes me genuinely excited to learn from it. \n So this might be a long shot, but I figured I’d reach out anyway. I’ve been checking out your site and LinkedIn over the past couple weeks and thought something I built could actually help you guys. \nTo put it bluntly, it’s a tool that auto-generates a detailed SEO audit PDF for any website. It only costs a few cents to run, converts really well, and since [business-name] is mainly focused on SEO, it feels like a solid fit. \nAnd just so you know, this isn’t some automated blast, I’m a real person. I even recorded a quick video running an audit on your very own site, so you can see this isn’t coming from a software list.", "subject":"Could this work for you too Maki?"}
     """
     try:
         response = client.responses.parse(
-            model="gpt-5-nano", 
+            model="gpt-5", 
             text_format=Custom_Email,
             input=[
                 {"role": "system", "content": system_prompt},
@@ -227,40 +223,3 @@ def generateCustomEmail(dossier: Dict) -> Custom_Email:
         raise HTTPException(status_code=500, detail="Error generating custom email. Please check the AI models and prompts.")
 
 # --- API Endpoint ---
-
-@app.post("/generate-email", response_model=Custom_Email)
-async def generate_personalized_email(request_data: EmailRequest):
-    """
-    Generates a personalized cold email based on company and decision maker information.
-    """
-    try:
-        print("Received Request: ",datetime.now())
-        # 1. Scrape Website
-        website_content = await extract_info_from_website(request_data.website_url, browser_instance)
-        if not website_content:
-            raise HTTPException(status_code=500, detail="Could not scrape or summarize website content.")
-
-        # 2. Scrape LinkedIn
-        linkedin_posts = extract_linkedin_posts(request_data.linkedin_url)
-        # Note: LinkedIn scraping can sometimes fail, so we'll pass an empty list if there's no data.
-
-        # 3. Create Dossier
-        dossier = {
-            "company_name": request_data.company_name,
-            "decision_maker_name": request_data.decision_maker_name,
-            "decision_maker_title": request_data.decision_maker_title,
-            "website_content": website_content,
-            "linkedin": linkedin_posts
-        }
-
-        # 4. Generate Email
-        final_email = generateCustomEmail(dossier)
-        return final_email
-
-    except HTTPException as e:
-        # Re-raise explicit HTTP exceptions
-        raise e
-    except Exception as e:
-        # Catch any other unexpected errors
-        print(f"An unexpected error occurred: {e}")
-        raise HTTPException(status_code=500, detail="An unexpected error occurred during email generation.")
