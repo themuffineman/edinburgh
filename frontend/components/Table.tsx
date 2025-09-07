@@ -120,7 +120,8 @@ const sampleLeads: Lead[] = [
 const createColumns = (
   handleSendEmailClick: (leadData: Lead) => Promise<void>,
   handleDeleteClick: (leadData: Lead) => void,
-  generateEmail: (leadData: Lead) => Promise<void>
+  generateEmail: (leadData: Lead) => Promise<void>,
+  updateEmail: (leadData: Lead) => void
 ): ColumnDef<Lead>[] => [
   {
     id: "select",
@@ -257,6 +258,29 @@ const createColumns = (
       const lead = row.original;
       const [isEmailDialogOpen, setIsEmailDialogOpen] = React.useState(false);
       const [isEmailEditable, setIsEmailEditable] = React.useState(false);
+      const [emailSubject, setEmailSubject] = React.useState(
+        lead.email.subject || ""
+      );
+      const [emailBody, setEmailBody] = React.useState(lead.email.body || "");
+
+      // Reset local state when dialog opens/closes
+      React.useEffect(() => {
+        if (isEmailDialogOpen) {
+          setEmailSubject(lead.email.subject || "");
+          setEmailBody(lead.email.body || "");
+        }
+      }, [isEmailDialogOpen, lead.email.subject, lead.email.body]);
+
+      const handleSaveEmail = () => {
+        updateEmail({
+          ...lead,
+          email: {
+            subject: emailSubject,
+            body: emailBody,
+          },
+        });
+        toast.success("Email saved successfully");
+      };
 
       return (
         <div>
@@ -286,7 +310,10 @@ const createColumns = (
                 <div>
                   <label className="text-sm font-medium">Subject</label>
                   <Input
-                    defaultValue={lead.email.subject}
+                    onChange={(e) => {
+                      setEmailSubject(e.target.value);
+                    }}
+                    value={emailSubject}
                     readOnly={!isEmailEditable}
                     className="mt-1"
                   />
@@ -294,11 +321,21 @@ const createColumns = (
                 <div>
                   <label className="text-sm font-medium">Body</label>
                   <Textarea
-                    defaultValue={lead.email.body}
-                    className="min-h-[300px] mt-1"
+                    onChange={(e) => {
+                      setEmailBody(e.target.value);
+                    }}
+                    value={emailBody}
+                    className="h-[300px] mt-1"
                     readOnly={!isEmailEditable}
                   />
                 </div>
+                {isEmailEditable && (
+                  <div className="flex justify-end">
+                    <Button onClick={handleSaveEmail} variant="default">
+                      Save Changes
+                    </Button>
+                  </div>
+                )}
               </div>
             </DialogContent>
           </Dialog>
@@ -312,6 +349,7 @@ const createColumns = (
     cell: ({ row }) => {
       const lead = row.original;
       const [isGeneratingEmail, setIsGeneratingEmail] = React.useState(false);
+      const [isSendingEmail, setisSendingEmail] = React.useState(false);
       return (
         <div className="flex space-x-2">
           <Button
@@ -319,10 +357,19 @@ const createColumns = (
             variant="default"
             disabled={!lead.email.body}
             size="sm"
-            onClick={() => handleSendEmailClick(lead)}
+            onClick={() => {
+              setIsGeneratingEmail(true);
+              handleSendEmailClick(lead).finally(() => {
+                setisSendingEmail(false);
+              });
+            }}
           >
             Send Email
-            <Mail className="h-4 w-4" />
+            {isSendingEmail ? (
+              <Loader2 className="animate-spin size-4" />
+            ) : (
+              <Mail className="h-4 w-4" />
+            )}
           </Button>
           <Button
             variant="outline"
@@ -367,7 +414,7 @@ export function LeadsTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [leads, setLeads] = React.useState<Lead[]>(sampleLeads);
+  const [leads, setLeads] = React.useState<Lead[]>([]);
 
   const handleLeadsUpload = (newLeads: Lead[]) => {
     setLeads(newLeads);
@@ -387,8 +434,9 @@ export function LeadsTable() {
         },
         body: JSON.stringify({
           subject: leadData.email.subject,
-          body: leadData.email.body,
-          emailAddress: leadData.emailAddress,
+          body_text: leadData.email.body,
+          recipients: [leadData.emailAddress],
+          sender_name: "Petrus",
         }),
       });
       if (res.ok) {
@@ -472,11 +520,22 @@ export function LeadsTable() {
     }
   };
 
+  const updateEmail = (leadData: Lead) => {
+    setLeads((prevLeads) =>
+      prevLeads.map((lead) =>
+        lead.id === leadData.id
+          ? { ...lead, email: { ...lead.email, ...leadData.email } }
+          : lead
+      )
+    );
+  };
+
   // Create columns with access to action functions
   const columns = createColumns(
     handleSendEmailClick,
     handleDeleteClick,
-    generateEmail
+    generateEmail,
+    updateEmail
   );
 
   const table = useReactTable({
