@@ -13,11 +13,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { error, statusText } = await supabase.from("crm").insert({
       name: body.name,
-      company: body.company,
-      email: body.email,
-      linkedin: body.linkedin,
+      email: body.emailAddress,
       website: body.website,
-      title: body.title,
     });
     if (error) {
       throw new Error(`${error.message || error.details}`);
@@ -26,6 +23,32 @@ export async function POST(req: NextRequest) {
       { succes: true, message: statusText },
       { status: 200 }
     );
+  } catch (error: any) {
+    console.error(error.message);
+    return Response.json(
+      { message: error.message, success: false },
+      { status: 500 }
+    );
+  }
+}
+export async function GET(req: NextRequest) {
+  try {
+    console.log("received crm req", new Date());
+    const searchParams = req.nextUrl.searchParams;
+    const email = searchParams.get("email");
+    const { data, error } = await supabase
+      .from("crm")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+    if (error) {
+      throw new Error(`${error.message || error.details}`);
+    }
+    if (data) {
+      return Response.json({ exists: true }, { status: 200 });
+    } else {
+      return Response.json({ exists: false }, { status: 200 });
+    }
   } catch (error: any) {
     console.error(error.message);
     return Response.json(

@@ -62,60 +62,7 @@ type ServerEmailResponse = {
   body: string;
   subject: string;
 };
-const sampleLeads: Lead[] = [
-  {
-    id: 1,
-    name: "Lou Aleman",
-    website: "http://www.coloradoseoservices.net",
-    linkedin: "http://www.linkedin.com/in/lou-aleman-79514910",
-    emailAddress: "lou@coloradoseoservices.net",
-    companyName: "Colorado SEO Services",
-    jobTitle: "Founder & CEO",
-    email: {
-      subject: "Hello John",
-      body: "Hi John,\n\nI wanted to reach out and tell you about our services...\n\nBest,\nYour Name",
-    },
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    website: "https://janesmith.io",
-    linkedin: "https://linkedin.com/in/janesmith",
-    emailAddress: "https://facebook.com/janesmith",
-    companyName: "ACME Inc",
-    jobTitle: "Founder & CEO",
-    email: {
-      subject: "Hello Jane",
-      body: "Hello Jane,\n\nWe think our solution could help you achieve...\n\nCheers,\nYour Name",
-    },
-  },
-  {
-    id: 3,
-    name: "Mike Johnson",
-    website: "https://mikejohnson.co",
-    linkedin: "https://linkedin.com/in/mikejohnson",
-    emailAddress: "https://facebook.com/mikejohnson",
-    companyName: "ACME Inc",
-    jobTitle: "Founder & CEO",
-    email: {
-      subject: "Hello Mike",
-      body: "Dear Mike,\n\nI wanted to share something that could be valuable to you...\n\nRegards,\nYour Name",
-    },
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    website: "https://emilydavis.net",
-    linkedin: "https://linkedin.com/in/emilydavis",
-    emailAddress: "https://facebook.com/emilydavis",
-    companyName: "ACME Inc",
-    jobTitle: "Founder & CEO",
-    email: {
-      subject: "Hello Emily",
-      body: "Hi Emily,\n\nI hope you're doing well! I wanted to reach out regarding...\n\nThanks,\nYour Name",
-    },
-  },
-];
+
 // Column definitions will be created inside the component to access action functions
 const createColumns = (
   handleSendEmailClick: (leadData: Lead) => Promise<void>,
@@ -419,7 +366,36 @@ export function LeadsTable() {
   const handleLeadsUpload = (newLeads: Lead[]) => {
     setLeads(newLeads);
   };
+  const logData = async (lead: Lead) => {
+    try {
+      await request(`/api/crm`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(lead),
+      });
 
+      await request(`${process.env.ACTIVE_PIECES_URL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          company: lead.companyName,
+          name: lead.name,
+          title: lead.jobTitle,
+          linkedin: lead.linkedin,
+          website: lead.website,
+          email: lead.email,
+          time: new Date(),
+        }),
+      });
+      toast.info("Lead data has been logged and tracked");
+    } catch (error: any) {
+      toast.info(`Logging and tracking failed -->${error.message} `);
+    }
+  };
   // Action functions with access to leads state
   const handleSendEmailClick = async (leadData: Lead) => {
     try {
@@ -427,6 +403,13 @@ export function LeadsTable() {
         return;
       }
       toast.info("Sending email...");
+      const leadAlreadyExists = await request(
+        `/api/crm?email=${leadData.emailAddress}`
+      );
+      if (leadAlreadyExists.exists) {
+        toast.error("We already contacted this lead");
+        return;
+      }
       const res = await fetch(`${SERVER_URL}/send-email`, {
         method: "POST",
         headers: {
@@ -441,23 +424,10 @@ export function LeadsTable() {
       });
       if (res.ok) {
         toast.success("Email Successfully Sent");
-        // Remove the lead from the list after successful send
         setLeads((prevLeads) =>
           prevLeads.filter((lead) => lead.id !== leadData.id)
         );
-
-        // Send to CRM (add contacted lead to backend)
-        try {
-          await fetch(`${SERVER_URL}/add-to-crm`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(leadData),
-          });
-        } catch (crmError) {
-          console.error("Failed to add to CRM:", crmError);
-        }
+        await logData(leadData);
       } else {
         throw new Error("Failed to send email");
       }
