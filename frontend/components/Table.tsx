@@ -410,7 +410,7 @@ export function LeadsTable() {
         toast.error("We already contacted this lead");
         return;
       }
-      const res = await fetch(`${SERVER_URL}/send-email`, {
+      const res = await fetch(`/api/send-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -418,12 +418,12 @@ export function LeadsTable() {
         body: JSON.stringify({
           subject: leadData.email.subject,
           body_text: leadData.email.body,
-          recipients: [leadData.emailAddress],
+          recipient: leadData.emailAddress,
           sender_name: "Petrus",
         }),
       });
       if (res.ok) {
-        toast.success("Email Successfully Sent");
+        toast.success("Email Scheduled Successfully");
         setLeads((prevLeads) =>
           prevLeads.filter((lead) => lead.id !== leadData.id)
         );
