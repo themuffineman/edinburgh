@@ -97,7 +97,7 @@ class Email_Request(BaseModel):
 class Email_Sending_Request(BaseModel):
     recipients: List[str]
     subject: str
-    html_content: str
+    body_text: str
     sender_name: str
 class Email_Sending_Response(BaseModel):
     message:str
@@ -110,14 +110,14 @@ async def generate_personalized_email(request_data: Email_Request):
     Generates a personalized cold email based on company and decision maker information.
     """
     try:
-        print("Received Request: ",datetime.now())
+        print("Received Generate Email Request: ",datetime.now())
         # 1. Scrape Website
         website_content = await dossier.extract_info_from_website(request_data.website_url, browser_instance)
-        if not website_content:
+        if not website_content["dossier"]:
             raise HTTPException(status_code=500, detail="Could not scrape or summarize website content.")
 
         # 2. Scrape LinkedIn
-        linkedin_posts = dossier.extract_linkedin_posts(request_data.linkedin_url)
+        # linkedin_posts = dossier.extract_linkedin_posts(request_data.linkedin_url)
         # Note: LinkedIn scraping can sometimes fail, so we'll pass an empty list if there's no data.
 
         # 3. Create Dossier
@@ -125,10 +125,9 @@ async def generate_personalized_email(request_data: Email_Request):
             "company_name": request_data.company_name,
             "decision_maker_name": request_data.decision_maker_name,
             "decision_maker_title": request_data.decision_maker_title,
-            "website_content": website_content,
-            "linkedin": linkedin_posts
+            "website_content": website_content["dossier"],
+            "is_qualified":website_content["is_qualified"]
         }
-
         # 4. Generate Email
         final_email = dossier.generateCustomEmail(lead_dossier)
         return final_email
@@ -140,8 +139,10 @@ async def generate_personalized_email(request_data: Email_Request):
         # Catch any other unexpected errors
         print(f"An unexpected error occurred: {e}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred during email generation.")
-@app.post("/send-email", response_model=Email_Sending_Request)
+@app.post("/send-email", response_model=Email_Sending_Response)
 def send_emails_endpoint(request: Email_Sending_Request):
+    print("Received Send Email Request: ",datetime.now())
+
     if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
         raise HTTPException(status_code=500, detail="Email address or password environment variables not set.")
 
@@ -152,7 +153,7 @@ def send_emails_endpoint(request: Email_Sending_Request):
         success, error_message = email.send_email(
             to_address=recipient,
             subject=request.subject,
-            html_content=request.html_content,
+            body_text=request.body_text,
             sender_name=request.sender_name
         )
         if success:
