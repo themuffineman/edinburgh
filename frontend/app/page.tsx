@@ -10,7 +10,7 @@ import Image from "next/image";
 export default function Home() {
   return (
     <div className="font-sans items-center relative justify-items-center min-h-screen w-full">
-      <div className="[background-image:url('/noise.png')] -z-10 opacity-5 w-full h-full absolute top-0" />
+      {/* <div className="[background-image:url('/noise.png')] -z-10 opacity-5 w-full h-full absolute top-0" /> */}
       <main className="flex flex-col h-max gap-18 p-20 py-5 justify-center items-center w-full max-w-full">
         <h1 className="relative z-20 ">
           <Image
