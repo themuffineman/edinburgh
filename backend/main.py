@@ -95,7 +95,7 @@ class Email_Request(BaseModel):
     linkedin_url: str
     website_url: str
 class Email_Sending_Request(BaseModel):
-    recipients: List[str]
+    recipient: str
     subject: str
     body_text: str
     sender_name: str
@@ -149,28 +149,27 @@ def send_emails_endpoint(request: Email_Sending_Request):
     successful_sends = []
     failed_sends = {}
     
-    for recipient in request.recipients:
-        success, error_message = email.send_email(
-            to_address=recipient,
-            subject=request.subject,
-            body_text=request.body_text,
-            sender_name=request.sender_name
-        )
-        if success:
-            successful_sends.append(recipient)
-        else:
-            failed_sends[recipient] = error_message
-        
-        # Add a delay between emails to avoid rate-limiting
-        delay = random.randint(30, 120)
-        print(f"Waiting {delay} seconds before next email...")
-        time.sleep(delay)
+    success, error_message = email.send_email(
+        to_address=request["recipient"],
+        subject=request.subject,
+        body_text=request.body_text,
+        sender_name=request.sender_name
+    )
+    if success:
+        successful_sends.append(request["recipient"])
+    else:
+        failed_sends[request["recipient"]] = error_message
+    
+    # Add a delay between emails to avoid rate-limiting
+    # delay = random.randint(30, 120)
+    # print(f"Waiting {delay} seconds before next email...")
+    # time.sleep(delay)
 
+    # Notify me offline if this error occurs whatsapp perhaps
     if failed_sends:
         raise HTTPException(status_code=500, detail={
-            "message": "Some emails failed to send.",
+            "message": "Emails failed to send.",
             "successful": successful_sends,
             "failed": failed_sends
         })
-
     return {"message": "All emails sent successfully.", "successful_recipients": successful_sends}
