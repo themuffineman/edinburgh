@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
     const minGap = 70; // minutes
     const maxGap = 100; // minutes
 
-    // Today UTC
     const now = new Date();
     const startOfDay = new Date(
       Date.UTC(
@@ -41,7 +40,6 @@ export async function POST(req: NextRequest) {
       )
     );
 
-    // 1. Fetch all scheduled for today
     const { data: scheduled, error: fetchError } = await supabase
       .from("scheduled-emails")
       .select("scheduled_time")
@@ -55,34 +53,23 @@ export async function POST(req: NextRequest) {
       throw new Error("Max emails for today already scheduled");
     }
 
-    // 2. Decide on new scheduled time
+    // Decide new time
     let chosenTime: Date;
 
+    const gapMinutes =
+      Math.floor(Math.random() * (maxGap - minGap + 1)) + minGap;
+
     if (!scheduled || scheduled.length === 0) {
-      // Start from now + random gap, but clamp to end of day
-      const gapMinutes =
-        Math.floor(Math.random() * (maxGap - minGap + 1)) + minGap;
       chosenTime = new Date(now.getTime() + gapMinutes * 60000);
     } else {
       const latest = new Date(scheduled[scheduled.length - 1].scheduled_time);
-
-      // Compute gap and new time
-      const gapMinutes =
-        Math.floor(Math.random() * (maxGap - minGap + 1)) + minGap;
       chosenTime = new Date(latest.getTime() + gapMinutes * 60000);
     }
 
-    // 3. Check if chosenTime fits in today's window
     if (chosenTime > endOfDay) {
       throw new Error("No valid time left today to schedule email");
     }
 
-    // 4. Check if adding this email would exceed max emails
-    if (scheduled && scheduled.length + 1 > maxEmails) {
-      throw new Error("Max emails for today already scheduled");
-    }
-
-    // 5. Insert new email
     const { error: insertError, statusText } = await supabase
       .from("scheduled-emails")
       .insert({
