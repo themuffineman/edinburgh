@@ -38,21 +38,20 @@ def send_email(record):
             "body": record.get("body_text", "No Content"),
             "sender_name": record.get("sender_name", "No Content")
         }
-        success, error_message=email.send_email(
+        success, error_message = email.send_email(
             to_address=payload["recipient"],
             subject=payload["subject"],
-            body_text=payload["body_text"],
+            body_text=payload["body"],
             sender_name=payload["sender_name"]
         )
         if success:
-            print("Email Sent Successfully", payload["recipient"])
+            print(f"✅ Email sent successfully to {payload['recipient']}")
         else:
-            print("Email Failed To Send❌", payload["recipient"])
+            print(f"❌ Email failed to send to {payload['recipient']}")
 
-
-        print(f"✅ Email sent to {payload["recipient"]}")
     except Exception as e:
-        print(f"❌ Failed to send email to {payload["recipient"]}: {e}")
+        print(f"❌ Failed to send email to {payload['recipient']}: {e}")
+
 
 
 def main():
