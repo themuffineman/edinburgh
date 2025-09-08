@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         now.getUTCSeconds()
       )
     );
-
+    console.log("Now UTC: ", nowUtc, "Actual now", now);
     // UTC start and end of today
     const startOfDay = new Date(
       Date.UTC(
@@ -70,18 +70,22 @@ export async function POST(req: NextRequest) {
     const gapMinutes =
       Math.floor(Math.random() * (maxGap - minGap + 1)) + minGap;
     let chosenTime: Date;
+    console.log("Gap minutes: ", gapMinutes);
 
     if (!scheduled || scheduled.length === 0) {
       chosenTime = new Date(nowUtc.getTime() + gapMinutes * 60000);
+      console.log("Chosen time with no length: ", chosenTime);
     } else {
       const latest = new Date(scheduled[scheduled.length - 1].scheduled_time);
       chosenTime = new Date(latest.getTime() + gapMinutes * 60000);
+      console.log("Chosen time with len: ", chosenTime);
     }
 
     // Stop if it goes past the end of the day
     if (chosenTime > endOfDay) {
       throw new Error("No valid time left today to schedule email");
     }
+    console.log("Chosen time to string: ", chosenTime.toISOString());
 
     // Insert into Supabase (ISO string = UTC)
     const { error: insertError, statusText } = await supabase
