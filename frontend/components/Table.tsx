@@ -29,9 +29,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -437,7 +434,6 @@ export function LeadsTable() {
       });
     }
   };
-
   const handleDeleteClick = (leadData: Lead) => {
     // Remove the lead from the leads array
     setLeads((prevLeads) =>
@@ -445,7 +441,6 @@ export function LeadsTable() {
     );
     toast.success("Lead deleted successfully");
   };
-
   const generateEmail = async (leadData: Lead) => {
     try {
       if (!SERVER_URL) {
@@ -499,7 +494,6 @@ export function LeadsTable() {
       )
     );
   };
-
   // Create columns with access to action functions
   const columns = createColumns(
     handleSendEmailClick,
