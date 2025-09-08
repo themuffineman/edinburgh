@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     const { error: insertError, statusText } = await supabase
       .from("scheduled-emails")
       .insert({
-        subject: body.email.subject,
+        subject: body.subject,
         body_text: body.body_text,
         recipient: body.recipient,
         sender_name: "Petrus",

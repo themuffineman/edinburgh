@@ -302,7 +302,7 @@ const createColumns = (
             disabled={!lead.email.body}
             size="sm"
             onClick={() => {
-              setIsGeneratingEmail(true);
+              setisSendingEmail(true);
               handleSendEmailClick(lead).finally(() => {
                 setisSendingEmail(false);
               });
@@ -373,21 +373,21 @@ export function LeadsTable() {
         body: JSON.stringify(lead),
       });
 
-      await request(`${process.env.ACTIVE_PIECES_URL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          company: lead.companyName,
-          name: lead.name,
-          title: lead.jobTitle,
-          linkedin: lead.linkedin,
-          website: lead.website,
-          email: lead.email,
-          time: new Date(),
-        }),
-      });
+      // await request(`${process.env.ACTIVE_PIECES_URL}`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     company: lead.companyName,
+      //     name: lead.name,
+      //     title: lead.jobTitle,
+      //     linkedin: lead.linkedin,
+      //     website: lead.website,
+      //     email: lead.email,
+      //     time: new Date(),
+      //   }),
+      // });
       toast.info("Lead data has been logged and tracked");
     } catch (error: any) {
       toast.info(`Logging and tracking failed -->${error.message} `);
@@ -396,9 +396,6 @@ export function LeadsTable() {
   // Action functions with access to leads state
   const handleSendEmailClick = async (leadData: Lead) => {
     try {
-      if (!SERVER_URL) {
-        return;
-      }
       toast.info("Sending email...");
       const leadAlreadyExists = await request(
         `/api/crm?email=${leadData.emailAddress}`
