@@ -21,7 +21,7 @@ def fetch_scheduled_emails(supabase: Client):
 
     # Query rows within the time window
     response = (
-        supabase.table("scheduled_emails")
+        supabase.table("scheduled-emails")
         .select("*")
         .gte("scheduled_time", window_start.isoformat())
         .lte("scheduled_time", window_end.isoformat())
