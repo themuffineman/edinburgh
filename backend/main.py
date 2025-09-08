@@ -69,7 +69,8 @@ async def shutdown_event():
 origins = [
     "http://localhost:8080",
     "http://localhost:3000",
-    "https://edinburgh-nine.vercel.app/" 
+    "https://edinburgh-nine.vercel.app/",
+    "*"
 ]
 
 app.add_middleware(
