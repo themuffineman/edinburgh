@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     // Config
     const maxEmails = 20;
-    const minGap = 72; // minutes
+    const minGap = 70; // minutes
     const maxGap = 100; // minutes
 
     // Today UTC
@@ -50,34 +50,39 @@ export async function POST(req: NextRequest) {
       .order("scheduled_time", { ascending: true });
 
     if (fetchError) throw new Error(fetchError.message);
+
     if (scheduled && scheduled.length >= maxEmails) {
       throw new Error("Max emails for today already scheduled");
     }
 
     // 2. Decide on new scheduled time
     let chosenTime: Date;
+
     if (!scheduled || scheduled.length === 0) {
-      // No scheduled emails yet → start around "now" (or pick a baseline like 08:00 if you prefer)
-      chosenTime = new Date(
-        now.getTime() +
-          Math.floor(Math.random() * (maxGap - minGap) + minGap) * 60000
-      );
+      // Start from now + random gap, but clamp to end of day
+      const gapMinutes =
+        Math.floor(Math.random() * (maxGap - minGap + 1)) + minGap;
+      chosenTime = new Date(now.getTime() + gapMinutes * 60000);
     } else {
-      // Get latest scheduled email
       const latest = new Date(scheduled[scheduled.length - 1].scheduled_time);
 
-      // Add random gap between 72–100 minutes
+      // Compute gap and new time
       const gapMinutes =
         Math.floor(Math.random() * (maxGap - minGap + 1)) + minGap;
       chosenTime = new Date(latest.getTime() + gapMinutes * 60000);
     }
 
-    // Clamp to end of day
+    // 3. Check if chosenTime fits in today's window
     if (chosenTime > endOfDay) {
-      throw new Error("No valid time left today (would exceed day window)");
+      throw new Error("No valid time left today to schedule email");
     }
 
-    // 3. Insert new email
+    // 4. Check if adding this email would exceed max emails
+    if (scheduled && scheduled.length + 1 > maxEmails) {
+      throw new Error("Max emails for today already scheduled");
+    }
+
+    // 5. Insert new email
     const { error: insertError, statusText } = await supabase
       .from("scheduled-emails")
       .insert({
