@@ -201,7 +201,7 @@ const createColumns = (
     cell: ({ row }) => {
       const lead = row.original;
       const [isEmailDialogOpen, setIsEmailDialogOpen] = React.useState(false);
-      const [isEmailEditable, setIsEmailEditable] = React.useState(false);
+      const [isEmailEditable, setIsEmailEditable] = React.useState(true);
       const [emailSubject, setEmailSubject] = React.useState(
         lead.email.subject || ""
       );
@@ -373,21 +373,21 @@ export function LeadsTable() {
         body: JSON.stringify(lead),
       });
 
-      // await request(`${process.env.ACTIVE_PIECES_URL}`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     company: lead.companyName,
-      //     name: lead.name,
-      //     title: lead.jobTitle,
-      //     linkedin: lead.linkedin,
-      //     website: lead.website,
-      //     email: lead.email,
-      //     time: new Date(),
-      //   }),
-      // });
+      await request(`${process.env.NEXT_PUBLIC_ACTIVE_PIECES_URL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          company: lead.companyName,
+          name: lead.name,
+          title: lead.jobTitle,
+          linkedin: lead.linkedin,
+          website: lead.website,
+          email: lead.email,
+          time: new Date(),
+        }),
+      });
       toast.info("Lead data has been logged and tracked");
     } catch (error: any) {
       toast.info(`Logging and tracking failed -->${error.message} `);
