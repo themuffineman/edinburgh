@@ -1,2 +1,8 @@
+[phases.setup]
+run = "python3 -m venv venv"
+
+[phases.build]
+run = "venv/bin/pip install --upgrade pip && venv/bin/pip install -r requirements.txt"
+
 [phases.start]
-run = "python cron.py"
+run = "venv/bin/python cron.py"
