@@ -2,14 +2,15 @@ import os
 from datetime import datetime, timezone, timedelta
 from supabase import create_client, Client
 from lib import email
+import time
+import random
 
 
 # Load your Supabase credentials
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-def get_supabase_client() -> Client:
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def fetch_scheduled_emails(supabase: Client):
     # Current time (UTC, to the minute)
@@ -25,6 +26,7 @@ def fetch_scheduled_emails(supabase: Client):
         .select("*")
         .gte("scheduled_time", window_start.isoformat())
         .lte("scheduled_time", window_end.isoformat())
+        .eq("sent", False) 
         .execute()
     )
 
@@ -36,7 +38,8 @@ def send_email(record):
             "recipient": record.get("recipient"),
             "subject": record.get("subject", "No Subject"),
             "body": record.get("body_text", "No Content"),
-            "sender_name": record.get("sender_name", "No Content")
+            "sender_name": record.get("sender_name", "No Content"),
+            "id": record.get("id")
         }
         success, error_message = email.send_email(
             to_address=payload["recipient"],
@@ -45,6 +48,7 @@ def send_email(record):
             sender_name=payload["sender_name"]
         )
         if success:
+            mark_as_sent(supabase_client, payload["id"])
             print(f"✅ Email sent successfully to {payload['recipient']}")
         else:
             print(f"❌ Email failed to send to {payload['recipient']}")
@@ -53,10 +57,11 @@ def send_email(record):
         print(f"❌ Failed to send email to {payload['recipient']}: {e}")
 
 
+def mark_as_sent(supabase: Client, email_id: int):
+    supabase.table("scheduled-emails").update({"sent": True}).eq("id", email_id).execute()
 
 def main():
-    supabase = get_supabase_client()
-    scheduled_emails = fetch_scheduled_emails(supabase)
+    scheduled_emails = fetch_scheduled_emails(supabase_client)
 
     if not scheduled_emails:
         print("No scheduled emails at this time.")
@@ -64,6 +69,11 @@ def main():
 
     for record in scheduled_emails:
         send_email(record)
+        # random delay between 4–8 seconds
+        delay = random.uniform(4, 8)
+        print(f"⏳ Sleeping for {delay:.2f} seconds before next email...")
+        time.sleep(delay)
+
 
 
 main()
