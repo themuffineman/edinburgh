@@ -65,5 +65,5 @@ def main():
     for record in scheduled_emails:
         send_email(record)
 
-if __name__ == "__main__":
-    main()
+
+main()

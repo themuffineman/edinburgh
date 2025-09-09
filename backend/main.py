@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
@@ -12,7 +12,7 @@ from apify_client import ApifyClient
 from datetime import datetime
 import asyncio
 import sys
-from lib import email,dossier
+from lib import email,dossier,cron
 
 if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -101,6 +101,8 @@ class Email_Sending_Request(BaseModel):
 class Email_Sending_Response(BaseModel):
     message:str
     successful_recipients:list
+class SuccessMessage(BaseModel):
+    message: str
 # --- API Endpoints ---
 
 @app.post("/generate-email", response_model=Custom_Email)
@@ -172,3 +174,10 @@ def send_emails_endpoint(request: Email_Sending_Request):
             "failed": failed_sends
         })
     return {"message": "All emails sent successfully.", "successful_recipients": successful_sends}
+@app.post("/send-scheduled-emails", response_model=SuccessMessage)
+async def send_scheduled_emails(background_tasks: BackgroundTasks):
+    """
+    Triggers the sending of all scheduled emails as a background task.
+    """
+    background_tasks.add_task(cron.main)
+    return {"message": "Scheduled emails task has been initiated."}
