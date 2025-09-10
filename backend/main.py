@@ -1,3 +1,4 @@
+from lib import send_email_func
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -12,7 +13,7 @@ from apify_client import ApifyClient
 from datetime import datetime
 import asyncio
 import sys
-from lib import email,dossier,cron
+from lib import dossier,cron
 
 if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -147,7 +148,7 @@ def send_emails_endpoint(request: Email_Sending_Request):
     successful_sends = []
     failed_sends = {}
     
-    success, error_message = email.send_email(
+    success, error_message = send_email_func.send_email(
         to_address=request["recipient"],
         subject=request.subject,
         body_text=request.body_text,

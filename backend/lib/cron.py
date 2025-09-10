@@ -1,10 +1,11 @@
 import os
+from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
 from supabase import create_client, Client
-from lib import email
+import send_email_func
 import time
 import random
-
+load_dotenv()
 
 # Load your Supabase credentials
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -41,7 +42,7 @@ def send_email(record):
             "sender_name": record.get("sender_name", "No Content"),
             "id": record.get("id")
         }
-        success, error_message = email.send_email(
+        success, error_message = send_email_func.send_email(
             to_address=payload["recipient"],
             subject=payload["subject"],
             body_text=payload["body"],
@@ -68,12 +69,10 @@ def main():
         return
 
     for record in scheduled_emails:
-        send_email(record)
+        send_email_func(record)
         # random delay between 4–8 seconds
         delay = random.uniform(4, 8)
         print(f"⏳ Sleeping for {delay:.2f} seconds before next email...")
         time.sleep(delay)
-
-
-
+        
 main()
