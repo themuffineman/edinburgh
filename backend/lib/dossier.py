@@ -20,6 +20,7 @@ if sys.platform.startswith("win"):
 # Load environment variables
 load_dotenv()
 print("\033[1;32;40mA PENDORIAN PRODUCTION\033[0m")
+print("\033[1;32;40mA PENDORIAN PRODUCTION\033[0m")
 
 # Initialize API clients from environment variables
 
