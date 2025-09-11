@@ -67,7 +67,6 @@ def mark_as_sent(supabase: Client, email_id: int):
         # Insert into sent-emails table
         supabase.table("sent-emails").insert({
             "name": record.get("sender_name"),
-            "website": record.get("website"),
             "email": record.get("recipient"),
             "sent_at":record.get("scheduled_time"),
             "body_text": record.get("body_text")
