@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
 from supabase import create_client, Client
-import send_email_func
+from lib import send_email_func
 import time
 import random
 load_dotenv()
