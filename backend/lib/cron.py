@@ -81,8 +81,8 @@ def main():
         return
 
     for record in scheduled_emails:
-        # send_email(record)
-        print(f"Attempting to send email to {record.get('recipient')} scheduled at {record.get('scheduled_time')}")
+        send_email(record)
+        # print(f"Attempting to send email to {record.get('recipient')} scheduled at {record.get('scheduled_time')}")
         # random delay between 4–8 seconds
         delay = random.uniform(4, 8)
         print(f"⏳ Sleeping for {delay:.2f} seconds before next email...")
