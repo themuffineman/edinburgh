@@ -152,7 +152,8 @@ def generateCustomEmail(dossier:  dict[str, any]) -> Custom_Email:
 
     prompt = f"""
         We just scraped a series of web pages for a business called {dossier['company_name']}.
-        And the decision maker is {dossier['decision_maker_name']} who is holding the position of {dossier['decision_maker_title']}.
+        And the decision maker is {dossier['decision_maker_name']} who is holding the position of {dossier['decision_maker_title']}. But in the email only use the first name of the decision maker.
+        In the email only use the first name of the decision maker.
         Use commas instead of em dashes. No em dashes. No em dashes use commas instead
         I repeat use commas instead of em dashes. Please I beg you, no em dashes. This is life or death.
         Comply to rules, comply to the rules.
