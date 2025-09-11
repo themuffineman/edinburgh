@@ -59,7 +59,20 @@ def send_email(record):
 
 
 def mark_as_sent(supabase: Client, email_id: int):
-    supabase.table("scheduled-emails").update({"sent": True}).eq("id", email_id).execute()
+    # Fetch the email record to get its details
+    response = supabase.table("scheduled-emails").select("sender_name,website,recipient,body_text,scheduled_time").eq("id", email_id).single().execute()
+    record = response.data
+
+    if record:
+        # Insert into sent-emails table
+        supabase.table("sent-emails").insert({
+            "name": record.get("sender_name"),
+            "website": record.get("website"),
+            "email": record.get("recipient"),
+            "sent_at":record.get("scheduled_time"),
+            "body_text": record.get("body_text")
+        }).execute()
+        supabase.table("scheduled-emails").delete().eq("id", email_id).execute()
 
 def main():
     scheduled_emails = fetch_scheduled_emails(supabase_client)
