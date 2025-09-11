@@ -60,7 +60,7 @@ def send_email(record):
 
 def mark_as_sent(supabase: Client, email_id: int):
     # Fetch the email record to get its details
-    response = supabase.table("scheduled-emails").select("sender_name,website,recipient,body_text,scheduled_time").eq("id", email_id).single().execute()
+    response = supabase.table("scheduled-emails").select("sender_name,recipient,body_text,scheduled_time").eq("id", email_id).single().execute()
     record = response.data
 
     if record:
@@ -81,7 +81,8 @@ def main():
         return
 
     for record in scheduled_emails:
-        send_email(record)
+        # send_email(record)
+        print(f"Attempting to send email to {record.get('recipient')} scheduled at {record.get('scheduled_time')}")
         # random delay between 4–8 seconds
         delay = random.uniform(4, 8)
         print(f"⏳ Sleeping for {delay:.2f} seconds before next email...")
