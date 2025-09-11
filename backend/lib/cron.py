@@ -18,8 +18,8 @@ def fetch_scheduled_emails(supabase: Client):
     current_time = datetime.now(timezone.utc).replace(second=0, microsecond=0)
 
     # Define a 10-minute window around current time
-    window_start = current_time - timedelta(minutes=10)
-    window_end = current_time + timedelta(minutes=10)
+    window_start = current_time - timedelta(minutes=15)
+    window_end = current_time + timedelta(minutes=15)
 
     # Query rows within the time window
     response = (
@@ -82,7 +82,7 @@ def main():
         return
 
     for record in scheduled_emails:
-        send_email_func(record)
+        send_email(record)
         # random delay between 4–8 seconds
         delay = random.uniform(4, 8)
         print(f"⏳ Sleeping for {delay:.2f} seconds before next email...")
