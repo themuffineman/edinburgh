@@ -18,8 +18,8 @@ def fetch_scheduled_emails(supabase: Client):
     current_time = datetime.now(timezone.utc).replace(second=0, microsecond=0)
 
     # Define a 10-minute window around current time
-    window_start = current_time - timedelta(minutes=15)
-    window_end = current_time + timedelta(minutes=15)
+    window_start = current_time - timedelta(minutes=10)
+    window_end = current_time + timedelta(minutes=10)
 
     # Query rows within the time window
     response = (
