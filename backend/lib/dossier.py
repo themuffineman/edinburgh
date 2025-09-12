@@ -211,16 +211,17 @@ def generateCustomEmail(dossier:  dict[str, any]) -> Custom_Email:
         {{ {example_output} }}
     """
     try:
-        response = client.responses.parse(
-            model="gpt-5-nano", 
-            text_format=Custom_Email,
-            input=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ]
-        )
-        email_data = response.output_parsed
-        return email_data
+        # response = client.responses.parse(
+        #     model="gpt-5-nano", 
+        #     text_format=Custom_Email,
+        #     input=[
+        #         {"role": "system", "content": system_prompt},
+        #         {"role": "user", "content": prompt},
+        #     ]
+        # )
+        manual_body = f"Hey {dossier['decision_maker_name']},\n\nSo am not sure if this will work for {dossier['company_name']} too, but I figured I’d reach out anyway. I built a tool that auto-generates a detailed SEO audit for any website you enter. { " It costs just a few cents to run, and I can see it easily helping convert more leads into paid clients with this as a lead magnet." if dossier["is_qualified"] == False else "It only costs a few cents to run. Since it runs almost instantly, you can free up your team to take on more clients."}\n \nI know it's a long shot but would you find someting like this useful? If yes I can get back to you in 1hr with a link to the system. Do you want me to just go ahead and do it?\n\nLooking forward to hearing from you {dossier['decision_maker_name']},\nPetrus"
+        manual_subject = f"Could this work for you too {dossier['decision_maker_name']}?"
+        return Custom_Email(body=manual_body, subject=manual_subject)
     except Exception as e:
         print(f"Error generating custom email: {e}")
         raise HTTPException(status_code=500, detail="Error generating custom email. Please check the AI models and prompts.")
