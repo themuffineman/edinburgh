@@ -16,7 +16,9 @@ load_dotenv()
 # --- CONFIG ---
 SMTP_SERVER = "smtp.hostinger.com"
 SMTP_PORT = 587
-EMAIL_ADDRESS = os.getenv("SENDER_EMAIL")
+# EMAIL_ADDRESS_1 = os.getenv("SENDER_EMAIL_1")
+# EMAIL_ADDRESS_2 = os.getenv("SENDER_EMAIL_2")
+# EMAIL_ADDRESS_3 = os.getenv("SENDER_EMAIL_3")
 EMAIL_PASSWORD = os.getenv("SENDER_PASSWORD")
 SENDER_NAME = "Petrus Sheya"  # customize this
 
@@ -66,7 +68,8 @@ def convert_text_to_html(body_text: str) -> str:
     
     return html_body
 
-def send_email(to_address: str, subject: str, body_text: str, sender_name: str):
+def send_email(to_address: str, subject: str, body_text: str, sender_name: str, email_inbox:str):
+    EMAIL_ADDRESS = email_inbox
     msg = MIMEMultipart("alternative")
     msg["From"] = f"{sender_name} <{EMAIL_ADDRESS}>"
     msg["To"] = to_address

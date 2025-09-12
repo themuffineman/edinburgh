@@ -40,13 +40,15 @@ def send_email(record):
             "subject": record.get("subject", "No Subject"),
             "body": record.get("body_text", "No Content"),
             "sender_name": record.get("sender_name", "No Content"),
-            "id": record.get("id")
+            "id": record.get("id"),
+            "email_inbox": record.get("email_inbox")
         }
         success, error_message = send_email_func.send_email(
             to_address=payload["recipient"],
             subject=payload["subject"],
             body_text=payload["body"],
-            sender_name=payload["sender_name"]
+            sender_name=payload["sender_name"],
+            email_inbox=payload["email_inbox"]
         )
         if success:
             mark_as_sent(supabase_client, payload["id"])
