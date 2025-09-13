@@ -41,7 +41,7 @@ def send_email(record):
             "body": record.get("body_text", "No Content"),
             "sender_name": record.get("sender_name", "No Content"),
             "id": record.get("id"),
-            "email_inbox": record.get("email_inbox")
+            "email_inbox": record.get("mailbox")
         }
         success, error_message = send_email_func.send_email(
             to_address=payload["recipient"],
@@ -62,7 +62,7 @@ def send_email(record):
 
 def mark_as_sent(supabase: Client, email_id: int):
     # Fetch the email record to get its details
-    response = supabase.table("scheduled-emails").select("sender_name,recipient,body_text,scheduled_time").eq("id", email_id).single().execute()
+    response = supabase.table("scheduled-emails").select("sender_name,recipient,body_text,scheduled_time,mailbox").eq("id", email_id).single().execute()
     record = response.data
 
     if record:
@@ -71,7 +71,8 @@ def mark_as_sent(supabase: Client, email_id: int):
             "name": record.get("sender_name"),
             "email": record.get("recipient"),
             "sent_at":record.get("scheduled_time"),
-            "body_text": record.get("body_text")
+            "body_text": record.get("body_text"),
+            "mailbox": record.get("mailbox")
         }).execute()
         supabase.table("scheduled-emails").delete().eq("id", email_id).execute()
 
