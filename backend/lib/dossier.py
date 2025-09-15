@@ -226,4 +226,3 @@ def generateCustomEmail(dossier:  dict[str, any]) -> Custom_Email:
         print(f"Error generating custom email: {e}")
         raise HTTPException(status_code=500, detail="Error generating custom email. Please check the AI models and prompts.")
 
-# --- API Endpoint ---
