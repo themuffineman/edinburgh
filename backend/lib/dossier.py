@@ -1,16 +1,13 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
-from typing import List, Optional
+from typing import List
 from openai import OpenAI
-from playwright.async_api import async_playwright, Browser, Playwright
+from playwright.async_api import Browser
 from html_to_markdown import convert_to_markdown
-import re
 from apify_client import ApifyClient
 from strip_markdown import strip_markdown
-from datetime import datetime
 import asyncio
 import sys
 
@@ -28,56 +25,8 @@ openai_api_key = os.getenv("OPEN_AI_API_KEY")
 apify_token = os.getenv("APIFY_TOKEN")
 client = OpenAI(api_key=openai_api_key)
 apify_client = ApifyClient(apify_token)
-# --- FastAPI Setup ---
-app = FastAPI(
-    title="Email Personalization API",
-    description="An API to generate personalized cold emails by scraping websites and LinkedIn.",
-    version="1.0.0"
-)
 
-playwright_instance: Optional[Playwright] = None
-browser_instance: Optional[Browser] = None
-# --- Startup and Shutdown Events for Resource Management ---
 
-@app.on_event("startup")
-async def startup_event():
-    """
-    Initializes the Playwright browser instance when the FastAPI app starts.
-    """
-    print("Starting up Playwright browser...")
-    global playwright_instance, browser_instance
-    playwright_instance = await async_playwright().start()
-    browser_instance = await playwright_instance.chromium.launch(headless=True, timeout=60000)
-    print("Playwright browser started.")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """
-    Closes the Playwright browser instance when the FastAPI app shuts down.
-    """
-    print("Shutting down Playwright browser...")
-    global browser_instance, playwright_instance
-    if browser_instance:
-        await browser_instance.close()
-    if playwright_instance:
-        await playwright_instance.stop()
-    print("Playwright browser shut down.")
-
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:3000",
-    "http://127.0.0.1:65506", 
-    "*"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (GET, POST, OPTIONS, etc.)
-    allow_headers=["*"],  # Allows all headers
-)
 
 # --- Pydantic Models ---
 class Custom_Email(BaseModel):

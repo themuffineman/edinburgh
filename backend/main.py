@@ -7,8 +7,6 @@ from dotenv import load_dotenv
 from typing import List, Optional
 from openai import OpenAI
 from playwright.async_api import async_playwright, Browser, Playwright
-import time
-import random
 from apify_client import ApifyClient
 from datetime import datetime
 import asyncio

@@ -16,9 +16,6 @@ load_dotenv()
 # --- CONFIG ---
 SMTP_SERVER = "smtp.hostinger.com"
 SMTP_PORT = 587
-# EMAIL_ADDRESS_1 = os.getenv("SENDER_EMAIL_1")
-# EMAIL_ADDRESS_2 = os.getenv("SENDER_EMAIL_2")
-# EMAIL_ADDRESS_3 = os.getenv("SENDER_EMAIL_3")
 EMAIL_PASSWORD = os.getenv("SENDER_PASSWORD")
 SENDER_NAME = "Petrus Sheya"  # customize this
 
